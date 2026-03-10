@@ -498,20 +498,20 @@ function Btn({ children, onClick, variant="primary", disabled, small, style:sx={
 }
 
 /* ── Steps Indicator ─────────────────────────────────────────── */
-function StepsBar({ current, onStepClick }) {
+function StepsBar({ current, maxStep, onStepClick }) {
   const t = useT();
   return (
     <div style={{ display:"flex", alignItems:"center", marginBottom:40 }}>
       {steps.map((s, i) => {
         const done = i < current;
         const active = i === current;
-        const clickable = done;
+        const clickable = i !== current && i <= maxStep;
         return (
           <div key={s} style={{ display:"flex", alignItems:"center", flex:i<steps.length-1?1:"none" }}>
             <div
               onClick={() => clickable && onStepClick(i)}
               style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0, cursor:clickable?"pointer":"default" }}
-              title={clickable ? `Go back to ${s}` : undefined}
+              title={clickable ? `Go to ${s}` : undefined}
             >
               <div style={{
                 width:28, height:28, borderRadius:"50%", fontSize:11, fontWeight:700,
@@ -570,7 +570,7 @@ function Step1({ form, setForm, onNext }) {
   const missing = [
     !form.name.trim()     && "Full Name",
     !form.title.trim()    && "Job Title",
-    !form.email.trim()    && "Email",
+    (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) && "Email — must be a valid email address",
     !form.phone.trim()    && "Phone number",
     !form.location.trim() && "Location",
   ].filter(Boolean);
@@ -600,10 +600,46 @@ function Step1({ form, setForm, onNext }) {
   );
 }
 
+/* ── Date Range Input ────────────────────────────────────────── */
+function DateRangeInput({ dateStart, dateEnd, datePresent, onChange }) {
+  const t = useT();
+  const today = new Date().toISOString().split("T")[0];
+  return (
+    <div style={{ marginBottom:22 }}>
+      <Label>Dates</Label>
+      <div style={{ display:"flex", alignItems:"flex-end", gap:12, flexWrap:"wrap" }}>
+        <div style={{ flex:1, minWidth:130 }}>
+          <span style={{ fontSize:10, color:t.textSoft, display:"block", marginBottom:6, fontWeight:500 }}>Start date</span>
+          <input type="date" value={dateStart} max={today}
+            onChange={e => onChange({ dateStart:e.target.value })}
+            className="field-input"
+            style={{ width:"100%", colorScheme:t.bg==="#080e1a"?"dark":"light" }}
+          />
+        </div>
+        <div style={{ flex:1, minWidth:130, opacity:datePresent?0.4:1, transition:"opacity .2s" }}>
+          <span style={{ fontSize:10, color:t.textSoft, display:"block", marginBottom:6, fontWeight:500 }}>End date</span>
+          <input type="date" value={dateEnd} max={today} disabled={datePresent}
+            onChange={e => onChange({ dateEnd:e.target.value })}
+            className="field-input"
+            style={{ width:"100%" , colorScheme:t.bg==="#080e1a"?"dark":"light" }}
+          />
+        </div>
+        <label style={{ display:"flex", alignItems:"center", gap:7, cursor:"pointer", flexShrink:0, paddingBottom:11 }}>
+          <input type="checkbox" checked={datePresent}
+            onChange={e => onChange({ datePresent:e.target.checked, ...(e.target.checked ? { dateEnd:"" } : {}) })}
+            style={{ width:15, height:15, accentColor:t.copper, cursor:"pointer" }}
+          />
+          <span style={{ fontSize:13, color:t.textMid, fontWeight:500 }}>Present</span>
+        </label>
+      </div>
+    </div>
+  );
+}
+
 /* ── Step 2 ──────────────────────────────────────────────────── */
 function Step2({ form, setForm, onNext, onBack }) {
   const t = useT();
-  const add = () => setForm(f => ({ ...f, experience:[...f.experience, { company:"", role:"", duration:"", description:"" }] }));
+  const add = () => setForm(f => ({ ...f, experience:[...f.experience, { company:"", role:"", dateStart:"", dateEnd:"", datePresent:false, description:"" }] }));
   const upd = (i, k, v) => setForm(f => { const e = [...f.experience]; e[i] = { ...e[i], [k]:v }; return { ...f, experience:e }; });
   const rem = i => setForm(f => ({ ...f, experience:f.experience.filter((_, j) => j !== i) }));
   const p = useMemo(() => Array.from({length:8}, () => ({ company:rnd(PH.company), role:rnd(PH.role), duration:rnd(PH.duration), desc:rnd(PH.desc) })), []);
@@ -611,10 +647,11 @@ function Step2({ form, setForm, onNext, onBack }) {
   const [tried, setTried] = useState(false);
   const missing = [
     ...form.experience.flatMap((e, i) => [
-      !e.company.trim()     && `Role ${i+1}: Company`,
-      !e.role.trim()        && `Role ${i+1}: Job Title`,
-      !e.duration.trim()    && `Role ${i+1}: Dates`,
-      !e.description.trim() && `Role ${i+1}: Description`,
+      !e.company.trim()                        && `Role ${i+1}: Company`,
+      !e.role.trim()                           && `Role ${i+1}: Job Title`,
+      !e.dateStart                             && `Role ${i+1}: Start Date`,
+      !e.datePresent && !e.dateEnd             && `Role ${i+1}: End Date (or tick Present)`,
+      !e.description.trim()                    && `Role ${i+1}: Description`,
     ]).filter(Boolean),
     !form.education.trim() && "Education",
   ].filter(Boolean);
@@ -632,7 +669,10 @@ function Step2({ form, setForm, onNext, onBack }) {
             <Input label="Company" value={exp.company} onChange={v => upd(i,"company",v)} placeholder={p[i]?.company} />
             <Input label="Job Title" value={exp.role} onChange={v => upd(i,"role",v)} placeholder={p[i]?.role} />
           </div>
-          <Input label="Dates" value={exp.duration} onChange={v => upd(i,"duration",v)} placeholder={p[i]?.duration} />
+          <DateRangeInput
+            dateStart={exp.dateStart} dateEnd={exp.dateEnd} datePresent={exp.datePresent}
+            onChange={changes => setForm(f => { const e=[...f.experience]; e[i]={...e[i],...changes}; return {...f,experience:e}; })}
+          />
           <Textarea label="What did you do? (rough notes fine)" value={exp.description} onChange={v => upd(i,"description",v)} placeholder={p[i]?.desc} rows={3} />
         </div>
       ))}
@@ -850,7 +890,11 @@ function Step4({ form, onBack, onReset }) {
   useEffect(() => { if (!fetched.current) { fetched.current = true; generate(); } }, []);
 
   const buildPrompt = () => {
-    const exp = form.experience.map((e, i) => `${i+1}. ${e.role} at ${e.company} (${e.duration}): ${e.description}`).join("\n");
+    const fmtDate = iso => { if(!iso) return ""; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y.slice(2)}`; };
+    const exp = form.experience.map((e, i) => {
+      const dur = e.datePresent ? `${fmtDate(e.dateStart)} – Present` : `${fmtDate(e.dateStart)} – ${fmtDate(e.dateEnd)}`;
+      return `${i+1}. ${e.role} at ${e.company} (${dur}): ${e.description}`;
+    }).join("\n");
     return `You are an expert resume writer. Write a polished, ATS-optimised resume.
 
 Name: ${form.name} | Title: ${form.title} | Email: ${form.email} | Phone: ${form.dialCode}${form.phone} | Location: ${form.location}
@@ -1032,13 +1076,14 @@ function Hero({ onStart }) {
 /* ── App ─────────────────────────────────────────────────────── */
 const initForm = {
   name:"", title:"", email:"", dialCode:"+44", phone:"", location:"", summary:"",
-  experience:[{ company:"", role:"", duration:"", description:"" }],
+  experience:[{ company:"", role:"", dateStart:"", dateEnd:"", datePresent:false, description:"" }],
   education:"", skills:"", targetJob:"", tone:"professional",
 };
 
 export default function App() {
   const [screen, setScreen] = useState("hero");
   const [step, setStep] = useState(0);
+  const [maxStep, setMaxStep] = useState(0);
   const [form, setForm] = useState(initForm);
   const [mode, setMode] = useState(() => {
     try { return localStorage.getItem("resumeai-theme") || "light"; } catch { return "light"; }
@@ -1053,7 +1098,7 @@ export default function App() {
   }, [mode]);
 
   const t = themes[mode];
-  const reset = () => { setStep(0); setForm(initForm); setScreen("hero"); };
+  const reset = () => { setStep(0); setMaxStep(0); setForm(initForm); setScreen("hero"); };
 
   return (
     <Ctx.Provider value={t}>
@@ -1098,10 +1143,10 @@ export default function App() {
           {screen === "builder" && (
             <div style={{ maxWidth:780, width:"100%", margin:"0 auto", padding:"40px 20px 80px" }}>
               <div className="card-inner" style={{ background:t.surface, borderRadius:14, border:`1px solid ${t.border}`, boxShadow:`0 8px 40px ${t.primary}0a` }}>
-                <StepsBar current={step} onStepClick={i => setStep(i)} />
-                {step === 0 && <Step1 form={form} setForm={setForm} onNext={() => setStep(1)} />}
-                {step === 1 && <Step2 form={form} setForm={setForm} onNext={() => setStep(2)} onBack={() => setStep(0)} />}
-                {step === 2 && <Step3 form={form} setForm={setForm} onNext={() => setStep(3)} onBack={() => setStep(1)} />}
+                <StepsBar current={step} maxStep={maxStep} onStepClick={i => setStep(i)} />
+                {step === 0 && <Step1 form={form} setForm={setForm} onNext={() => { setStep(1); setMaxStep(m => Math.max(m, 1)); }} />}
+                {step === 1 && <Step2 form={form} setForm={setForm} onNext={() => { setStep(2); setMaxStep(m => Math.max(m, 2)); }} onBack={() => setStep(0)} />}
+                {step === 2 && <Step3 form={form} setForm={setForm} onNext={() => { setStep(3); setMaxStep(m => Math.max(m, 3)); }} onBack={() => setStep(1)} />}
                 {step === 3 && <Step4 form={form} onBack={() => setStep(2)} onReset={reset} />}
               </div>
             </div>
