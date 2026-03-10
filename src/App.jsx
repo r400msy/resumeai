@@ -3,6 +3,167 @@ import { useState, useEffect, useRef, createContext, useContext } from "react";
 const API = "/api/generate";
 const BRAND = "SwiftCV";
 
+/* ── Country Dial Codes ──────────────────────────────────────── */
+const COUNTRIES = [
+  { name:"United Kingdom",             dial:"+44"  },
+  { name:"United States",              dial:"+1"   },
+  { name:"Afghanistan",                dial:"+93"  },
+  { name:"Albania",                    dial:"+355" },
+  { name:"Algeria",                    dial:"+213" },
+  { name:"Andorra",                    dial:"+376" },
+  { name:"Angola",                     dial:"+244" },
+  { name:"Argentina",                  dial:"+54"  },
+  { name:"Armenia",                    dial:"+374" },
+  { name:"Australia",                  dial:"+61"  },
+  { name:"Austria",                    dial:"+43"  },
+  { name:"Azerbaijan",                 dial:"+994" },
+  { name:"Bahamas",                    dial:"+1242"},
+  { name:"Bahrain",                    dial:"+973" },
+  { name:"Bangladesh",                 dial:"+880" },
+  { name:"Belarus",                    dial:"+375" },
+  { name:"Belgium",                    dial:"+32"  },
+  { name:"Belize",                     dial:"+501" },
+  { name:"Benin",                      dial:"+229" },
+  { name:"Bolivia",                    dial:"+591" },
+  { name:"Bosnia & Herzegovina",       dial:"+387" },
+  { name:"Botswana",                   dial:"+267" },
+  { name:"Brazil",                     dial:"+55"  },
+  { name:"Brunei",                     dial:"+673" },
+  { name:"Bulgaria",                   dial:"+359" },
+  { name:"Burkina Faso",               dial:"+226" },
+  { name:"Burundi",                    dial:"+257" },
+  { name:"Cambodia",                   dial:"+855" },
+  { name:"Cameroon",                   dial:"+237" },
+  { name:"Canada",                     dial:"+1"   },
+  { name:"Cape Verde",                 dial:"+238" },
+  { name:"Chad",                       dial:"+235" },
+  { name:"Chile",                      dial:"+56"  },
+  { name:"China",                      dial:"+86"  },
+  { name:"Colombia",                   dial:"+57"  },
+  { name:"Congo",                      dial:"+242" },
+  { name:"Costa Rica",                 dial:"+506" },
+  { name:"Croatia",                    dial:"+385" },
+  { name:"Cuba",                       dial:"+53"  },
+  { name:"Cyprus",                     dial:"+357" },
+  { name:"Czech Republic",             dial:"+420" },
+  { name:"Denmark",                    dial:"+45"  },
+  { name:"Dominican Republic",         dial:"+1809"},
+  { name:"Ecuador",                    dial:"+593" },
+  { name:"Egypt",                      dial:"+20"  },
+  { name:"El Salvador",                dial:"+503" },
+  { name:"Estonia",                    dial:"+372" },
+  { name:"Ethiopia",                   dial:"+251" },
+  { name:"Fiji",                       dial:"+679" },
+  { name:"Finland",                    dial:"+358" },
+  { name:"France",                     dial:"+33"  },
+  { name:"Gabon",                      dial:"+241" },
+  { name:"Georgia",                    dial:"+995" },
+  { name:"Germany",                    dial:"+49"  },
+  { name:"Ghana",                      dial:"+233" },
+  { name:"Greece",                     dial:"+30"  },
+  { name:"Guatemala",                  dial:"+502" },
+  { name:"Guinea",                     dial:"+224" },
+  { name:"Haiti",                      dial:"+509" },
+  { name:"Honduras",                   dial:"+504" },
+  { name:"Hong Kong",                  dial:"+852" },
+  { name:"Hungary",                    dial:"+36"  },
+  { name:"Iceland",                    dial:"+354" },
+  { name:"India",                      dial:"+91"  },
+  { name:"Indonesia",                  dial:"+62"  },
+  { name:"Iran",                       dial:"+98"  },
+  { name:"Iraq",                       dial:"+964" },
+  { name:"Ireland",                    dial:"+353" },
+  { name:"Israel",                     dial:"+972" },
+  { name:"Italy",                      dial:"+39"  },
+  { name:"Jamaica",                    dial:"+1876"},
+  { name:"Japan",                      dial:"+81"  },
+  { name:"Jordan",                     dial:"+962" },
+  { name:"Kazakhstan",                 dial:"+7"   },
+  { name:"Kenya",                      dial:"+254" },
+  { name:"Kuwait",                     dial:"+965" },
+  { name:"Kyrgyzstan",                 dial:"+996" },
+  { name:"Laos",                       dial:"+856" },
+  { name:"Latvia",                     dial:"+371" },
+  { name:"Lebanon",                    dial:"+961" },
+  { name:"Libya",                      dial:"+218" },
+  { name:"Liechtenstein",              dial:"+423" },
+  { name:"Lithuania",                  dial:"+370" },
+  { name:"Luxembourg",                 dial:"+352" },
+  { name:"Macau",                      dial:"+853" },
+  { name:"Madagascar",                 dial:"+261" },
+  { name:"Malawi",                     dial:"+265" },
+  { name:"Malaysia",                   dial:"+60"  },
+  { name:"Maldives",                   dial:"+960" },
+  { name:"Mali",                       dial:"+223" },
+  { name:"Malta",                      dial:"+356" },
+  { name:"Mauritius",                  dial:"+230" },
+  { name:"Mexico",                     dial:"+52"  },
+  { name:"Moldova",                    dial:"+373" },
+  { name:"Monaco",                     dial:"+377" },
+  { name:"Mongolia",                   dial:"+976" },
+  { name:"Montenegro",                 dial:"+382" },
+  { name:"Morocco",                    dial:"+212" },
+  { name:"Mozambique",                 dial:"+258" },
+  { name:"Myanmar",                    dial:"+95"  },
+  { name:"Namibia",                    dial:"+264" },
+  { name:"Nepal",                      dial:"+977" },
+  { name:"Netherlands",                dial:"+31"  },
+  { name:"New Zealand",                dial:"+64"  },
+  { name:"Nicaragua",                  dial:"+505" },
+  { name:"Niger",                      dial:"+227" },
+  { name:"Nigeria",                    dial:"+234" },
+  { name:"North Macedonia",            dial:"+389" },
+  { name:"Norway",                     dial:"+47"  },
+  { name:"Oman",                       dial:"+968" },
+  { name:"Pakistan",                   dial:"+92"  },
+  { name:"Panama",                     dial:"+507" },
+  { name:"Papua New Guinea",           dial:"+675" },
+  { name:"Paraguay",                   dial:"+595" },
+  { name:"Peru",                       dial:"+51"  },
+  { name:"Philippines",                dial:"+63"  },
+  { name:"Poland",                     dial:"+48"  },
+  { name:"Portugal",                   dial:"+351" },
+  { name:"Qatar",                      dial:"+974" },
+  { name:"Romania",                    dial:"+40"  },
+  { name:"Russia",                     dial:"+7"   },
+  { name:"Rwanda",                     dial:"+250" },
+  { name:"Saudi Arabia",               dial:"+966" },
+  { name:"Senegal",                    dial:"+221" },
+  { name:"Serbia",                     dial:"+381" },
+  { name:"Sierra Leone",               dial:"+232" },
+  { name:"Singapore",                  dial:"+65"  },
+  { name:"Slovakia",                   dial:"+421" },
+  { name:"Slovenia",                   dial:"+386" },
+  { name:"Somalia",                    dial:"+252" },
+  { name:"South Africa",               dial:"+27"  },
+  { name:"South Korea",                dial:"+82"  },
+  { name:"Spain",                      dial:"+34"  },
+  { name:"Sri Lanka",                  dial:"+94"  },
+  { name:"Sudan",                      dial:"+249" },
+  { name:"Sweden",                     dial:"+46"  },
+  { name:"Switzerland",                dial:"+41"  },
+  { name:"Syria",                      dial:"+963" },
+  { name:"Taiwan",                     dial:"+886" },
+  { name:"Tajikistan",                 dial:"+992" },
+  { name:"Tanzania",                   dial:"+255" },
+  { name:"Thailand",                   dial:"+66"  },
+  { name:"Togo",                       dial:"+228" },
+  { name:"Trinidad & Tobago",          dial:"+1868"},
+  { name:"Tunisia",                    dial:"+216" },
+  { name:"Turkey",                     dial:"+90"  },
+  { name:"Turkmenistan",               dial:"+993" },
+  { name:"Uganda",                     dial:"+256" },
+  { name:"Ukraine",                    dial:"+380" },
+  { name:"United Arab Emirates",       dial:"+971" },
+  { name:"Uruguay",                    dial:"+598" },
+  { name:"Uzbekistan",                 dial:"+998" },
+  { name:"Venezuela",                  dial:"+58"  },
+  { name:"Vietnam",                    dial:"+84"  },
+  { name:"Yemen",                      dial:"+967" },
+  { name:"Zambia",                     dial:"+260" },
+  { name:"Zimbabwe",                   dial:"+263" },
+];
+
 /* ── Themes ──────────────────────────────────────────────────── */
 const themes = {
   light: {
@@ -159,6 +320,36 @@ function Textarea({ label, value, onChange, placeholder, rows=4 }) {
   );
 }
 
+function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange }) {
+  const t = useT();
+  return (
+    <div style={{ marginBottom:22 }}>
+      <Label>Phone</Label>
+      <div style={{ display:"flex", alignItems:"flex-end", gap:8 }}>
+        <div style={{ flexShrink:0 }}>
+          <select
+            value={dialCode}
+            onChange={e => onDialChange(e.target.value)}
+            style={{ padding:"10px 6px", border:"none", borderBottom:`2px solid ${t.border}`, background:"transparent", fontSize:13.5, color:t.text, fontFamily:"'Poppins',sans-serif", cursor:"pointer", outline:"none", maxWidth:180 }}
+          >
+            {COUNTRIES.map((c, i) => (
+              <option key={i} value={c.dial}>{c.name} ({c.dial})</option>
+            ))}
+          </select>
+        </div>
+        <input
+          type="tel"
+          value={phone}
+          onChange={e => onPhoneChange(e.target.value)}
+          placeholder="7700 000000"
+          className="field-input"
+          style={{ flex:1 }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function Btn({ children, onClick, variant="primary", disabled, small, style:sx={} }) {
   const t = useT();
   const [h, setH] = useState(false);
@@ -173,26 +364,36 @@ function Btn({ children, onClick, variant="primary", disabled, small, style:sx={
 }
 
 /* ── Steps Indicator ─────────────────────────────────────────── */
-function StepsBar({ current }) {
+function StepsBar({ current, onStepClick }) {
   const t = useT();
   return (
     <div style={{ display:"flex", alignItems:"center", marginBottom:40 }}>
-      {steps.map((s, i) => (
-        <div key={s} style={{ display:"flex", alignItems:"center", flex:i<steps.length-1?1:"none" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
-            <div style={{
-              width:28, height:28, borderRadius:"50%", fontSize:11, fontWeight:700,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              background:i<current?t.copper:i===current?t.primary:"transparent",
-              border:`2px solid ${i<current?t.copper:i===current?t.primary:t.border}`,
-              color:i<=current?t.primaryFg:t.textSoft, transition:"all .3s ease",
-              boxShadow:i===current?`0 0 0 4px ${t.primary}18`:"none",
-            }}>{i < current ? "✓" : i + 1}</div>
-            <span className="step-label" style={{ fontWeight:i===current?600:400, color:i===current?t.primary:i<current?t.copper:t.textSoft, transition:"color .3s" }}>{s}</span>
+      {steps.map((s, i) => {
+        const done = i < current;
+        const active = i === current;
+        const clickable = done;
+        return (
+          <div key={s} style={{ display:"flex", alignItems:"center", flex:i<steps.length-1?1:"none" }}>
+            <div
+              onClick={() => clickable && onStepClick(i)}
+              style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0, cursor:clickable?"pointer":"default" }}
+              title={clickable ? `Go back to ${s}` : undefined}
+            >
+              <div style={{
+                width:28, height:28, borderRadius:"50%", fontSize:11, fontWeight:700,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                background:done?t.copper:active?t.primary:"transparent",
+                border:`2px solid ${done?t.copper:active?t.primary:t.border}`,
+                color:done||active?t.primaryFg:t.textSoft, transition:"all .3s ease",
+                boxShadow:active?`0 0 0 4px ${t.primary}18`:"none",
+                transform:clickable?"scale(1.05)":"none",
+              }}>{done ? "✓" : i + 1}</div>
+              <span className="step-label" style={{ fontWeight:active?600:400, color:active?t.primary:done?t.copper:t.textSoft, transition:"color .3s", textDecoration:clickable?"underline dotted":"none", textUnderlineOffset:3 }}>{s}</span>
+            </div>
+            {i < steps.length - 1 && <div style={{ flex:1, height:2, margin:"0 12px", background:done?t.copper:t.border, transition:"background .4s ease", borderRadius:2 }} />}
           </div>
-          {i < steps.length - 1 && <div style={{ flex:1, height:2, margin:"0 12px", background:i<current?t.copper:t.border, transition:"background .4s ease", borderRadius:2 }} />}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -211,19 +412,25 @@ function StepHead({ title, subtitle }) {
 /* ── Step 1 ──────────────────────────────────────────────────── */
 function Step1({ form, setForm, onNext }) {
   const u = k => v => setForm(f => ({ ...f, [k]:v }));
+  const valid = form.name.trim() && form.title.trim() && form.email.trim() && form.phone.trim() && form.location.trim();
   return (
     <div className="a0">
-      <StepHead title="Personal Details" subtitle="Let's start with the basics." />
+      <StepHead title="Personal Details" subtitle="Let's start with the basics. All fields are required." />
       <div className="two-col">
         <Input label="Full Name" value={form.name} onChange={u("name")} placeholder="Alex Johnson" />
         <Input label="Job Title" value={form.title} onChange={u("title")} placeholder="Senior UX Designer" />
-        <Input label="Email" value={form.email} onChange={u("email")} placeholder="alex@email.com" type="email" />
-        <Input label="Phone" value={form.phone} onChange={u("phone")} placeholder="+44 7700 000000" />
       </div>
+      <Input label="Email" value={form.email} onChange={u("email")} placeholder="alex@email.com" type="email" />
+      <PhoneInput
+        dialCode={form.dialCode}
+        onDialChange={v => setForm(f => ({ ...f, dialCode:v }))}
+        phone={form.phone}
+        onPhoneChange={v => setForm(f => ({ ...f, phone:v }))}
+      />
       <Input label="Location" value={form.location} onChange={u("location")} placeholder="London, UK" />
       <Textarea label="Brief Summary (optional — AI will enhance it)" value={form.summary} onChange={u("summary")} placeholder="Short intro about your background..." rows={3} />
       <div style={{ display:"flex", justifyContent:"flex-end", marginTop:8 }}>
-        <Btn onClick={onNext} disabled={!form.name || !form.email}>Continue →</Btn>
+        <Btn onClick={onNext} disabled={!valid}>Continue →</Btn>
       </div>
     </div>
   );
@@ -235,6 +442,7 @@ function Step2({ form, setForm, onNext, onBack }) {
   const add = () => setForm(f => ({ ...f, experience:[...f.experience, { company:"", role:"", duration:"", description:"" }] }));
   const upd = (i, k, v) => setForm(f => { const e = [...f.experience]; e[i] = { ...e[i], [k]:v }; return { ...f, experience:e }; });
   const rem = i => setForm(f => ({ ...f, experience:f.experience.filter((_, j) => j !== i) }));
+  const valid = form.experience.every(e => e.company.trim() && e.role.trim() && e.duration.trim() && e.description.trim()) && form.education.trim();
   return (
     <div className="a0">
       <StepHead title="Work Experience" subtitle="Add your roles — AI will write compelling bullet points." />
@@ -260,7 +468,7 @@ function Step2({ form, setForm, onNext, onBack }) {
       <Textarea label="Education" value={form.education} onChange={v => setForm(f => ({ ...f, education:v }))} placeholder="BSc Computer Science, University of Manchester, 2020" rows={2} />
       <div style={{ display:"flex", justifyContent:"space-between", marginTop:8 }}>
         <Btn variant="ghost" onClick={onBack}>← Back</Btn>
-        <Btn onClick={onNext}>Continue →</Btn>
+        <Btn onClick={onNext} disabled={!valid}>Continue →</Btn>
       </div>
     </div>
   );
@@ -460,7 +668,7 @@ function Step4({ form, onBack, onReset }) {
     const exp = form.experience.map((e, i) => `${i+1}. ${e.role} at ${e.company} (${e.duration}): ${e.description}`).join("\n");
     return `You are an expert resume writer. Write a polished, ATS-optimised resume.
 
-Name: ${form.name} | Title: ${form.title} | Email: ${form.email} | Phone: ${form.phone} | Location: ${form.location}
+Name: ${form.name} | Title: ${form.title} | Email: ${form.email} | Phone: ${form.dialCode}${form.phone} | Location: ${form.location}
 Summary provided: ${form.summary || "none"}
 Education: ${form.education}
 Skills: ${form.skills}
@@ -638,7 +846,7 @@ function Hero({ onStart }) {
 
 /* ── App ─────────────────────────────────────────────────────── */
 const initForm = {
-  name:"", title:"", email:"", phone:"", location:"", summary:"",
+  name:"", title:"", email:"", dialCode:"+44", phone:"", location:"", summary:"",
   experience:[{ company:"", role:"", duration:"", description:"" }],
   education:"", skills:"", targetJob:"", tone:"professional",
 };
@@ -705,7 +913,7 @@ export default function App() {
           {screen === "builder" && (
             <div style={{ maxWidth:780, width:"100%", margin:"0 auto", padding:"40px 20px 80px" }}>
               <div className="card-inner" style={{ background:t.surface, borderRadius:14, border:`1px solid ${t.border}`, boxShadow:`0 8px 40px ${t.primary}0a` }}>
-                <StepsBar current={step} />
+                <StepsBar current={step} onStepClick={i => setStep(i)} />
                 {step === 0 && <Step1 form={form} setForm={setForm} onNext={() => setStep(1)} />}
                 {step === 1 && <Step2 form={form} setForm={setForm} onNext={() => setStep(2)} onBack={() => setStep(0)} />}
                 {step === 2 && <Step3 form={form} setForm={setForm} onNext={() => setStep(3)} onBack={() => setStep(1)} />}
