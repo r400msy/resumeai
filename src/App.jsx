@@ -164,13 +164,99 @@ const COUNTRIES = [
   { name:"Zimbabwe",                   dial:"+263" },
 ];
 
+/* ── Dial code → Capital city map ────────────────────────────── */
+const DIAL_TO_LOCATION = {
+  "+44":"London, UK",           "+1":"Washington D.C., US",   "+93":"Kabul, Afghanistan",
+  "+355":"Tirana, Albania",     "+213":"Algiers, Algeria",     "+376":"Andorra la Vella, Andorra",
+  "+244":"Luanda, Angola",      "+54":"Buenos Aires, Argentina","+374":"Yerevan, Armenia",
+  "+61":"Canberra, Australia",  "+43":"Vienna, Austria",       "+994":"Baku, Azerbaijan",
+  "+1242":"Nassau, Bahamas",    "+973":"Manama, Bahrain",      "+880":"Dhaka, Bangladesh",
+  "+375":"Minsk, Belarus",      "+32":"Brussels, Belgium",     "+501":"Belmopan, Belize",
+  "+229":"Porto-Novo, Benin",   "+591":"Sucre, Bolivia",       "+387":"Sarajevo, Bosnia & Herzegovina",
+  "+267":"Gaborone, Botswana",  "+55":"Brasília, Brazil",      "+673":"Bandar Seri Begawan, Brunei",
+  "+359":"Sofia, Bulgaria",     "+226":"Ouagadougou, Burkina Faso", "+257":"Gitega, Burundi",
+  "+855":"Phnom Penh, Cambodia","+237":"Yaoundé, Cameroon",    "+238":"Praia, Cape Verde",
+  "+235":"N'Djamena, Chad",     "+56":"Santiago, Chile",       "+86":"Beijing, China",
+  "+57":"Bogotá, Colombia",     "+242":"Brazzaville, Congo",   "+506":"San José, Costa Rica",
+  "+385":"Zagreb, Croatia",     "+53":"Havana, Cuba",          "+357":"Nicosia, Cyprus",
+  "+420":"Prague, Czech Republic", "+45":"Copenhagen, Denmark","+1809":"Santo Domingo, Dominican Republic",
+  "+593":"Quito, Ecuador",      "+20":"Cairo, Egypt",          "+503":"San Salvador, El Salvador",
+  "+372":"Tallinn, Estonia",    "+251":"Addis Ababa, Ethiopia","+679":"Suva, Fiji",
+  "+358":"Helsinki, Finland",   "+33":"Paris, France",         "+241":"Libreville, Gabon",
+  "+995":"Tbilisi, Georgia",    "+49":"Berlin, Germany",       "+233":"Accra, Ghana",
+  "+30":"Athens, Greece",       "+502":"Guatemala City, Guatemala", "+224":"Conakry, Guinea",
+  "+509":"Port-au-Prince, Haiti","+504":"Tegucigalpa, Honduras","+852":"Hong Kong",
+  "+36":"Budapest, Hungary",    "+354":"Reykjavik, Iceland",   "+91":"New Delhi, India",
+  "+62":"Jakarta, Indonesia",   "+98":"Tehran, Iran",          "+964":"Baghdad, Iraq",
+  "+353":"Dublin, Ireland",     "+972":"Jerusalem, Israel",    "+39":"Rome, Italy",
+  "+1876":"Kingston, Jamaica",  "+81":"Tokyo, Japan",          "+962":"Amman, Jordan",
+  "+7":"Moscow, Russia",        "+254":"Nairobi, Kenya",       "+965":"Kuwait City, Kuwait",
+  "+996":"Bishkek, Kyrgyzstan", "+856":"Vientiane, Laos",      "+371":"Riga, Latvia",
+  "+961":"Beirut, Lebanon",     "+218":"Tripoli, Libya",       "+423":"Vaduz, Liechtenstein",
+  "+370":"Vilnius, Lithuania",  "+352":"Luxembourg City, Luxembourg", "+853":"Macau",
+  "+261":"Antananarivo, Madagascar", "+265":"Lilongwe, Malawi","+60":"Kuala Lumpur, Malaysia",
+  "+960":"Malé, Maldives",      "+223":"Bamako, Mali",         "+356":"Valletta, Malta",
+  "+230":"Port Louis, Mauritius","+52":"Mexico City, Mexico",  "+373":"Chișinău, Moldova",
+  "+377":"Monaco",              "+976":"Ulaanbaatar, Mongolia","+382":"Podgorica, Montenegro",
+  "+212":"Rabat, Morocco",      "+258":"Maputo, Mozambique",   "+95":"Naypyidaw, Myanmar",
+  "+264":"Windhoek, Namibia",   "+977":"Kathmandu, Nepal",     "+31":"Amsterdam, Netherlands",
+  "+64":"Wellington, New Zealand","+505":"Managua, Nicaragua", "+227":"Niamey, Niger",
+  "+234":"Abuja, Nigeria",      "+389":"Skopje, North Macedonia","+47":"Oslo, Norway",
+  "+968":"Muscat, Oman",        "+92":"Islamabad, Pakistan",   "+507":"Panama City, Panama",
+  "+675":"Port Moresby, Papua New Guinea","+595":"Asunción, Paraguay","+51":"Lima, Peru",
+  "+63":"Manila, Philippines",  "+48":"Warsaw, Poland",        "+351":"Lisbon, Portugal",
+  "+974":"Doha, Qatar",         "+40":"Bucharest, Romania",    "+250":"Kigali, Rwanda",
+  "+966":"Riyadh, Saudi Arabia","+221":"Dakar, Senegal",       "+381":"Belgrade, Serbia",
+  "+232":"Freetown, Sierra Leone","+65":"Singapore",           "+421":"Bratislava, Slovakia",
+  "+386":"Ljubljana, Slovenia", "+252":"Mogadishu, Somalia",   "+27":"Pretoria, South Africa",
+  "+82":"Seoul, South Korea",   "+34":"Madrid, Spain",         "+94":"Colombo, Sri Lanka",
+  "+249":"Khartoum, Sudan",     "+46":"Stockholm, Sweden",     "+41":"Bern, Switzerland",
+  "+963":"Damascus, Syria",     "+886":"Taipei, Taiwan",       "+992":"Dushanbe, Tajikistan",
+  "+255":"Dodoma, Tanzania",    "+66":"Bangkok, Thailand",     "+228":"Lomé, Togo",
+  "+1868":"Port of Spain, Trinidad & Tobago","+216":"Tunis, Tunisia","+90":"Ankara, Turkey",
+  "+993":"Ashgabat, Turkmenistan","+256":"Kampala, Uganda",    "+380":"Kyiv, Ukraine",
+  "+971":"Abu Dhabi, UAE",      "+598":"Montevideo, Uruguay",  "+998":"Tashkent, Uzbekistan",
+  "+58":"Caracas, Venezuela",   "+84":"Hanoi, Vietnam",        "+967":"Sana'a, Yemen",
+  "+260":"Lusaka, Zambia",      "+263":"Harare, Zimbabwe",
+};
+
 /* ── Random placeholder helper ───────────────────────────────── */
 const rnd = arr => arr[Math.floor(Math.random() * arr.length)];
 
 const PH = {
-  name:     ["Alex Johnson", "Jordan Smith", "Priya Patel", "Marcus Williams", "Emma Clarke", "Sophie Bennett", "Liam Carter"],
+  personas: [
+    { name:"Alex Johnson",      email:"alex.johnson@gmail.com"        },
+    { name:"Jordan Smith",      email:"jordan.smith@outlook.com"      },
+    { name:"Priya Patel",       email:"priya.patel@email.com"         },
+    { name:"Marcus Williams",   email:"m.williams@email.co.uk"        },
+    { name:"Emma Clarke",       email:"emma.clarke@gmail.com"         },
+    { name:"Sophie Bennett",    email:"s.bennett@outlook.com"         },
+    { name:"Liam Carter",       email:"liam.carter@email.com"         },
+    { name:"Olivia Harris",     email:"olivia.harris@gmail.com"       },
+    { name:"Noah Thompson",     email:"n.thompson@outlook.com"        },
+    { name:"Ava Robinson",      email:"ava.robinson@email.com"        },
+    { name:"Ethan Mitchell",    email:"ethan.mitchell@gmail.com"      },
+    { name:"Isabella Turner",   email:"i.turner@email.co.uk"          },
+    { name:"James Walker",      email:"james.walker@gmail.com"        },
+    { name:"Mia Anderson",      email:"mia.anderson@outlook.com"      },
+    { name:"Oliver Brown",      email:"o.brown@email.com"             },
+    { name:"Charlotte Davis",   email:"charlotte.davis@gmail.com"     },
+    { name:"Harry Wilson",      email:"h.wilson@email.co.uk"          },
+    { name:"Amelia Moore",      email:"amelia.moore@outlook.com"      },
+    { name:"Jack Taylor",       email:"jack.taylor@gmail.com"         },
+    { name:"Freya Evans",       email:"freya.evans@email.com"         },
+    { name:"Ryan Martinez",     email:"r.martinez@gmail.com"          },
+    { name:"Zoe Jackson",       email:"zoe.jackson@outlook.com"       },
+    { name:"Daniel White",      email:"daniel.white@gmail.com"        },
+    { name:"Grace Thomas",      email:"grace.thomas@email.co.uk"      },
+    { name:"Samuel Lewis",      email:"sam.lewis@outlook.com"         },
+    { name:"Chloe Roberts",     email:"chloe.roberts@gmail.com"       },
+    { name:"Benjamin Hall",     email:"b.hall@email.com"              },
+    { name:"Emily Green",       email:"emily.green@gmail.com"         },
+    { name:"Lucas Adams",       email:"lucas.adams@outlook.com"       },
+    { name:"Hannah Scott",      email:"h.scott@email.co.uk"           },
+  ],
   title:    ["Senior UX Designer", "Software Engineer", "Product Manager", "Marketing Executive", "Data Analyst", "Operations Lead", "Full Stack Developer"],
-  email:    ["alex@email.com", "jordan.smith@gmail.com", "priya.p@outlook.com", "m.williams@email.co.uk", "emma.clarke@gmail.com"],
   phone:    ["7700 000000", "7900 123456", "7800 654321", "7711 223344", "7833 445566"],
   location: ["London, UK", "Manchester, UK", "New York, US", "Toronto, Canada", "Sydney, Australia", "Berlin, Germany", "Dublin, Ireland"],
   summary:  [
@@ -479,7 +565,8 @@ function ValidationError({ missing }) {
 function Step1({ form, setForm, onNext }) {
   const u = k => v => setForm(f => ({ ...f, [k]:v }));
   const [tried, setTried] = useState(false);
-  const p = useMemo(() => ({ name:rnd(PH.name), title:rnd(PH.title), email:rnd(PH.email), phone:rnd(PH.phone), location:rnd(PH.location), summary:rnd(PH.summary) }), []);
+  const p = useMemo(() => { const persona = rnd(PH.personas); return { name:persona.name, email:persona.email, title:rnd(PH.title), phone:rnd(PH.phone), locationFallback:rnd(PH.location), summary:rnd(PH.summary) }; }, []);
+  const locationPlaceholder = DIAL_TO_LOCATION[form.dialCode] || p.locationFallback;
   const missing = [
     !form.name.trim()     && "Full Name",
     !form.title.trim()    && "Job Title",
@@ -503,7 +590,7 @@ function Step1({ form, setForm, onNext }) {
         onPhoneChange={v => setForm(f => ({ ...f, phone:v }))}
         placeholder={p.phone}
       />
-      <Input label="Location" value={form.location} onChange={u("location")} placeholder={p.location} />
+      <Input label="Location" value={form.location} onChange={u("location")} placeholder={locationPlaceholder} />
       <Textarea label="Brief Summary (optional — AI will enhance it)" value={form.summary} onChange={u("summary")} placeholder={p.summary} rows={3} />
       {tried && <ValidationError missing={missing} />}
       <div style={{ display:"flex", justifyContent:"flex-end", marginTop:8 }}>
