@@ -57,8 +57,8 @@ const fonts = `@import url('https://fonts.googleapis.com/css2?family=Montserrat:
 
 const buildCss = t => `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{scroll-behavior:smooth;}
-body{background:${t.bg};color:${t.text};font-family:'Poppins',sans-serif;min-height:100vh;transition:background-color .4s,color .3s;}
+html,body{scroll-behavior:smooth;overflow-x:hidden;max-width:100%;}
+body{background:${t.bg};color:${t.text};font-family:'Poppins',sans-serif;min-height:100vh;transition:background-color .4s,color .3s;width:100%;}
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:${t.bg};}
 ::-webkit-scrollbar-thumb{background:${t.border};border-radius:3px;}
@@ -94,6 +94,7 @@ textarea{resize:vertical;}
   .two-col{grid-template-columns:1fr;}
   .step-label{display:none;}
   .hero-stat{padding:0 12px;}
+  .paywall-features{grid-template-columns:1fr!important;}
 }
 `;
 
@@ -391,7 +392,7 @@ function Paywall({ resume, targetJob, name, onUnlock }) {
         </p>
 
         {/* Features */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px 16px", marginBottom:24 }}>
+        <div className="paywall-features" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px 16px", marginBottom:24 }}>
           {features.map(f => (
             <div key={f} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
               <div style={{ width:18, height:18, borderRadius:"50%", background:`${t.copper}18`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
@@ -482,9 +483,12 @@ Write a complete resume in clean plain text:
     setLoading(true); setError(""); setUnlocked(false);
     try {
       const res = await fetch(API, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, messages:[{ role:"user", content:buildPrompt() }] }) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setResume(data.content?.map(b => b.text || "").join("") || "");
-    } catch { setError("Generation failed. Please try again."); }
+      const text = data.content?.map(b => b.text || "").join("") || "";
+      if (!text) throw new Error(data.error?.message || "Empty response from API");
+      setResume(text);
+    } catch(e) { setError(`Generation failed: ${e.message}. Please try again.`); }
     finally { setLoading(false); }
   };
 
@@ -592,31 +596,25 @@ function Hero({ onStart }) {
   const t = useT();
   const [btnH, setBtnH] = useState(false);
   return (
-    <div style={{ maxWidth:700, width:"100%", margin:"0 auto", padding:"40px 24px", textAlign:"center" }}>
-      <div className="a0" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"5px 16px", borderRadius:24, background:t.copperPale, border:`1px solid ${t.copper}40`, color:t.copper, fontSize:11, fontWeight:600, letterSpacing:".08em", textTransform:"uppercase", marginBottom:32 }}>
+    <div style={{ maxWidth:680, width:"100%", margin:"0 auto", padding:"32px 24px 28px", textAlign:"center" }}>
+      <div className="a0" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"5px 16px", borderRadius:24, background:t.copperPale, border:`1px solid ${t.copper}40`, color:t.copper, fontSize:11, fontWeight:600, letterSpacing:".08em", textTransform:"uppercase", marginBottom:20 }}>
         <span style={{ width:6, height:6, borderRadius:"50%", background:t.copper, display:"inline-block", animation:"pulse 2s infinite" }} />
         AI-Powered · Free to Start
       </div>
 
-      <h1 className="a1" style={{ fontFamily:"'Montserrat',sans-serif", fontWeight:800, fontSize:"clamp(36px,6.5vw,68px)", lineHeight:1.08, color:t.primary, marginBottom:24, letterSpacing:"-.03em" }}>
-        Land Your Dream Job<br />
-        <em style={{ fontStyle:"italic", fontWeight:700, color:t.copper }}>with an AI-Crafted CV</em>
+      <h1 className="a1" style={{ fontFamily:"'Montserrat',sans-serif", fontWeight:800, fontSize:"clamp(32px,5.5vw,60px)", lineHeight:1.1, color:t.primary, marginBottom:14, letterSpacing:"-.03em" }}>
+        Your CV, Built by AI.<br />
+        <em style={{ fontStyle:"italic", fontWeight:700, color:t.copper }}>In 2 minutes.</em>
       </h1>
 
-      <div className="a2" style={{ display:"flex", alignItems:"center", gap:12, maxWidth:240, margin:"0 auto 28px" }}>
-        <div style={{ flex:1, height:2, background:t.copperPale, borderRadius:2 }} />
-        <div style={{ width:6, height:6, borderRadius:"50%", background:t.copper }} />
-        <div style={{ flex:1, height:2, background:t.copperPale, borderRadius:2 }} />
-      </div>
-
-      <p className="a2" style={{ fontSize:16, color:t.textMid, lineHeight:1.75, maxWidth:460, margin:"0 auto 40px" }}>
-        Answer a few questions and get a tailored, recruiter-ready CV in under 2 minutes. Professional. ATS-optimised. Built for your target role.
+      <p className="a2" style={{ fontSize:15.5, color:t.textMid, lineHeight:1.7, maxWidth:440, margin:"0 auto 24px" }}>
+        Tailored to your target role. ATS-optimised. Recruiter-ready.
       </p>
 
-      <div className="a3" style={{ display:"flex", justifyContent:"center", marginBottom:44 }}>
+      <div className="a3" style={{ display:"flex", justifyContent:"center", marginBottom:28 }}>
         {[{ n:"2 min", l:"to build" }, { n:"ATS", l:"optimised" }, { n:"50k+", l:"job seekers" }].map(s => (
           <div key={s.n} className="hero-stat">
-            <div style={{ fontFamily:"'Montserrat',sans-serif", fontSize:28, fontWeight:800, color:t.primary, lineHeight:1 }}>{s.n}</div>
+            <div style={{ fontFamily:"'Montserrat',sans-serif", fontSize:26, fontWeight:800, color:t.primary, lineHeight:1 }}>{s.n}</div>
             <div style={{ fontSize:11.5, color:t.textSoft, marginTop:4, letterSpacing:".03em" }}>{s.l}</div>
           </div>
         ))}
@@ -626,10 +624,10 @@ function Hero({ onStart }) {
         <button onClick={onStart} onMouseEnter={() => setBtnH(true)} onMouseLeave={() => setBtnH(false)} style={{ padding:"14px 44px", fontSize:15, fontWeight:700, letterSpacing:".02em", background:btnH?t.primHover:t.primary, color:t.primaryFg, border:"none", borderRadius:10, cursor:"pointer", boxShadow:btnH?`0 12px 40px ${t.primary}55`:`0 4px 20px ${t.primary}35`, transform:btnH?"translateY(-2px)":"none", transition:"all .22s ease" }}>
           Build My CV — Free →
         </button>
-        <p style={{ fontSize:12, color:t.textSoft, marginTop:13 }}>No sign-up required · 2 minutes · Unlock from £4.99</p>
+        <p style={{ fontSize:12, color:t.textSoft, marginTop:10 }}>No sign-up required · 2 minutes · 100% free to start</p>
       </div>
 
-      <div className="a5" style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginTop:48 }}>
+      <div className="a5" style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginTop:24 }}>
         {["✓ ATS Optimised", "✓ Recruiter-Approved", "✓ Role-Tailored", "✓ Instant Results"].map(f => (
           <span key={f} style={{ padding:"6px 14px", borderRadius:6, fontSize:12, fontWeight:500, background:t.surface, border:`1px solid ${t.border}`, color:t.textMid }}>{f}</span>
         ))}
@@ -719,7 +717,7 @@ export default function App() {
 
         {screen === "hero" && (
           <footer style={{ borderTop:`1px solid ${t.border}`, padding:"24px", textAlign:"center" }}>
-            <p style={{ fontSize:12, color:t.textSoft, letterSpacing:".03em" }}>© 2026 {BRAND} · Professional CV Builder · Unlock from £4.99</p>
+            <p style={{ fontSize:12, color:t.textSoft, letterSpacing:".03em" }}>© 2026 {BRAND} · Professional CV Builder</p>
           </footer>
         )}
       </div>
