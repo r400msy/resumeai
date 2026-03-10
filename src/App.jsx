@@ -420,7 +420,7 @@ export default function App() {
   return (
     <>
       <style>{fonts+css}</style>
-      <div style={{ minHeight:"100vh", background:T.bg }}>
+      <div style={{ minHeight:"100vh", background:T.bg, width:"100%", overflowX:"hidden" }}>
         {/* BG decoration */}
         <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:0, overflow:"hidden" }}>
           <div style={{ position:"absolute", top:-200, right:-200, width:600, height:600, borderRadius:"50%", background:`radial-gradient(circle,${T.sky}08 0%,transparent 70%)` }} />
