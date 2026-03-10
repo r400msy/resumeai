@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext, useContext } from "react";
+import { useState, useEffect, useRef, createContext, useContext, useMemo } from "react";
 
 const API = "/api/generate";
 const BRAND = "SwiftCV";
@@ -164,6 +164,54 @@ const COUNTRIES = [
   { name:"Zimbabwe",                   dial:"+263" },
 ];
 
+/* ── Random placeholder helper ───────────────────────────────── */
+const rnd = arr => arr[Math.floor(Math.random() * arr.length)];
+
+const PH = {
+  name:     ["Alex Johnson", "Jordan Smith", "Priya Patel", "Marcus Williams", "Emma Clarke", "Sophie Bennett", "Liam Carter"],
+  title:    ["Senior UX Designer", "Software Engineer", "Product Manager", "Marketing Executive", "Data Analyst", "Operations Lead", "Full Stack Developer"],
+  email:    ["alex@email.com", "jordan.smith@gmail.com", "priya.p@outlook.com", "m.williams@email.co.uk", "emma.clarke@gmail.com"],
+  phone:    ["7700 000000", "7900 123456", "7800 654321", "7711 223344", "7833 445566"],
+  location: ["London, UK", "Manchester, UK", "New York, US", "Toronto, Canada", "Sydney, Australia", "Berlin, Germany", "Dublin, Ireland"],
+  summary:  [
+    "Passionate designer with 5+ years crafting user-centred digital products for startups and scale-ups...",
+    "Results-driven engineer with expertise in cloud infrastructure and high-performance systems...",
+    "Creative problem-solver with a track record of launching successful products from 0 to 1...",
+    "Strategic marketing leader with a passion for data-driven campaigns and brand growth...",
+  ],
+  company:  ["Acme Ltd", "TechFlow Inc", "Bright Digital", "Nova Solutions", "Peak Corp", "Orion Media", "Vertex Systems"],
+  role:     ["Product Manager", "Senior Developer", "UX Lead", "Marketing Manager", "Operations Director", "Data Engineer", "Brand Strategist"],
+  duration: ["Mar 2022 – Present", "Jan 2020 – Dec 2022", "Jun 2019 – Feb 2022", "Sep 2021 – Present", "Apr 2018 – May 2021"],
+  desc:     [
+    "Managed product roadmap, led cross-functional team of 6, launched 3 key features, improved retention by 18%...",
+    "Built scalable microservices handling 2M+ daily requests, reduced API latency by 40%, mentored 3 junior devs...",
+    "Spearheaded rebranding campaign that lifted conversions by 32%, managed £400k budget across 5 channels...",
+    "Designed end-to-end user flows for iOS and Android, ran usability tests, increased task completion rate by 27%...",
+    "Automated reporting pipelines saving 12hrs/week, built dashboards used daily by leadership team...",
+  ],
+  education:[
+    "BSc Computer Science, University of Manchester, 2020",
+    "BA Business Management, King's College London, 2019",
+    "MSc Data Science, University of Edinburgh, 2021",
+    "BEng Mechanical Engineering, University of Leeds, 2018",
+    "BA Graphic Design, Central Saint Martins, 2020",
+  ],
+  skills:   [
+    "React, TypeScript, Node.js, PostgreSQL, AWS, Docker, Agile, Leadership",
+    "Python, Machine Learning, Pandas, SQL, Tableau, A/B Testing, Statistics",
+    "Figma, Adobe XD, User Research, Prototyping, HTML/CSS, Accessibility",
+    "SEO, Google Analytics, Content Strategy, HubSpot, Copywriting, PPC",
+    "Java, Spring Boot, Kubernetes, CI/CD, Microservices, System Design",
+  ],
+  targetJob:[
+    "Senior Frontend Engineer at a fast-growing tech startup",
+    "Product Manager at a fintech company in London",
+    "UX Designer at a creative agency focused on mobile apps",
+    "Data Scientist at a healthcare analytics company",
+    "Marketing Manager at a DTC e-commerce brand",
+  ],
+};
+
 /* ── Themes ──────────────────────────────────────────────────── */
 const themes = {
   light: {
@@ -320,7 +368,7 @@ function Textarea({ label, value, onChange, placeholder, rows=4 }) {
   );
 }
 
-function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange }) {
+function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder="7700 000000" }) {
   const t = useT();
   return (
     <div style={{ marginBottom:22 }}>
@@ -341,7 +389,7 @@ function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange }) {
           type="tel"
           value={phone}
           onChange={e => onPhoneChange(e.target.value)}
-          placeholder="7700 000000"
+          placeholder={placeholder}
           className="field-input"
           style={{ flex:1 }}
         />
@@ -431,6 +479,7 @@ function ValidationError({ missing }) {
 function Step1({ form, setForm, onNext }) {
   const u = k => v => setForm(f => ({ ...f, [k]:v }));
   const [tried, setTried] = useState(false);
+  const p = useMemo(() => ({ name:rnd(PH.name), title:rnd(PH.title), email:rnd(PH.email), phone:rnd(PH.phone), location:rnd(PH.location), summary:rnd(PH.summary) }), []);
   const missing = [
     !form.name.trim()     && "Full Name",
     !form.title.trim()    && "Job Title",
@@ -443,18 +492,19 @@ function Step1({ form, setForm, onNext }) {
     <div className="a0">
       <StepHead title="Personal Details" subtitle="Let's start with the basics. All fields are required." />
       <div className="two-col">
-        <Input label="Full Name" value={form.name} onChange={u("name")} placeholder="Alex Johnson" />
-        <Input label="Job Title" value={form.title} onChange={u("title")} placeholder="Senior UX Designer" />
+        <Input label="Full Name" value={form.name} onChange={u("name")} placeholder={p.name} />
+        <Input label="Job Title" value={form.title} onChange={u("title")} placeholder={p.title} />
       </div>
-      <Input label="Email" value={form.email} onChange={u("email")} placeholder="alex@email.com" type="email" />
+      <Input label="Email" value={form.email} onChange={u("email")} placeholder={p.email} type="email" />
       <PhoneInput
         dialCode={form.dialCode}
         onDialChange={v => setForm(f => ({ ...f, dialCode:v }))}
         phone={form.phone}
         onPhoneChange={v => setForm(f => ({ ...f, phone:v }))}
+        placeholder={p.phone}
       />
-      <Input label="Location" value={form.location} onChange={u("location")} placeholder="London, UK" />
-      <Textarea label="Brief Summary (optional — AI will enhance it)" value={form.summary} onChange={u("summary")} placeholder="Short intro about your background..." rows={3} />
+      <Input label="Location" value={form.location} onChange={u("location")} placeholder={p.location} />
+      <Textarea label="Brief Summary (optional — AI will enhance it)" value={form.summary} onChange={u("summary")} placeholder={p.summary} rows={3} />
       {tried && <ValidationError missing={missing} />}
       <div style={{ display:"flex", justifyContent:"flex-end", marginTop:8 }}>
         <Btn onClick={handleNext}>Continue →</Btn>
@@ -469,6 +519,8 @@ function Step2({ form, setForm, onNext, onBack }) {
   const add = () => setForm(f => ({ ...f, experience:[...f.experience, { company:"", role:"", duration:"", description:"" }] }));
   const upd = (i, k, v) => setForm(f => { const e = [...f.experience]; e[i] = { ...e[i], [k]:v }; return { ...f, experience:e }; });
   const rem = i => setForm(f => ({ ...f, experience:f.experience.filter((_, j) => j !== i) }));
+  const p = useMemo(() => Array.from({length:8}, () => ({ company:rnd(PH.company), role:rnd(PH.role), duration:rnd(PH.duration), desc:rnd(PH.desc) })), []);
+  const edu = useMemo(() => rnd(PH.education), []);
   const [tried, setTried] = useState(false);
   const missing = [
     ...form.experience.flatMap((e, i) => [
@@ -490,11 +542,11 @@ function Step2({ form, setForm, onNext, onBack }) {
             {form.experience.length > 1 && <button onClick={() => rem(i)} style={{ background:"none", border:"none", color:t.textSoft, fontSize:16, lineHeight:1 }}>✕</button>}
           </div>
           <div className="two-col">
-            <Input label="Company" value={exp.company} onChange={v => upd(i,"company",v)} placeholder="Acme Ltd" />
-            <Input label="Job Title" value={exp.role} onChange={v => upd(i,"role",v)} placeholder="Product Manager" />
+            <Input label="Company" value={exp.company} onChange={v => upd(i,"company",v)} placeholder={p[i]?.company} />
+            <Input label="Job Title" value={exp.role} onChange={v => upd(i,"role",v)} placeholder={p[i]?.role} />
           </div>
-          <Input label="Dates" value={exp.duration} onChange={v => upd(i,"duration",v)} placeholder="Mar 2022 – Present" />
-          <Textarea label="What did you do? (rough notes fine)" value={exp.description} onChange={v => upd(i,"description",v)} placeholder="Managed roadmap, led team of 5, launched 3 features, increased retention by 18%..." rows={3} />
+          <Input label="Dates" value={exp.duration} onChange={v => upd(i,"duration",v)} placeholder={p[i]?.duration} />
+          <Textarea label="What did you do? (rough notes fine)" value={exp.description} onChange={v => upd(i,"description",v)} placeholder={p[i]?.desc} rows={3} />
         </div>
       ))}
       <button onClick={add} style={{ width:"100%", padding:11, background:"transparent", border:`1.5px dashed ${t.border}`, borderRadius:8, color:t.textSoft, fontSize:13, marginBottom:22, transition:"all .2s" }}
@@ -502,7 +554,7 @@ function Step2({ form, setForm, onNext, onBack }) {
         onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textSoft; }}>
         + Add another role
       </button>
-      <Textarea label="Education (write 'None' if not applicable)" value={form.education} onChange={v => setForm(f => ({ ...f, education:v }))} placeholder="e.g. BSc Computer Science, University of Manchester, 2020 — or write None" rows={2} />
+      <Textarea label="Education (write 'None' if not applicable)" value={form.education} onChange={v => setForm(f => ({ ...f, education:v }))} placeholder={`e.g. ${edu} — or write None`} rows={2} />
       {tried && <ValidationError missing={missing} />}
       <div style={{ display:"flex", justifyContent:"space-between", marginTop:8 }}>
         <Btn variant="ghost" onClick={onBack}>← Back</Btn>
@@ -517,6 +569,7 @@ function Step3({ form, setForm, onNext, onBack }) {
   const t = useT();
   const u = k => v => setForm(f => ({ ...f, [k]:v }));
   const tones = ["professional","confident","creative","technical","executive"];
+  const p = useMemo(() => ({ skills:rnd(PH.skills), targetJob:rnd(PH.targetJob) }), []);
   const [tried, setTried] = useState(false);
   const missing = [
     !form.skills.trim()    && "Your Skills",
@@ -526,8 +579,8 @@ function Step3({ form, setForm, onNext, onBack }) {
   return (
     <div className="a0">
       <StepHead title="Skills & Target Role" subtitle="This is what the AI optimises for." />
-      <Textarea label="Your Skills" value={form.skills} onChange={u("skills")} placeholder="React, TypeScript, Figma, Python, SQL, Agile, Leadership..." rows={3} />
-      <Input label="Target Job" value={form.targetJob} onChange={u("targetJob")} placeholder="e.g. Senior Frontend Engineer at a tech startup" hint="Be specific — the more detail, the better the AI tailors your resume." />
+      <Textarea label="Your Skills" value={form.skills} onChange={u("skills")} placeholder={p.skills} rows={3} />
+      <Input label="Target Job" value={form.targetJob} onChange={u("targetJob")} placeholder={p.targetJob} hint="Be specific — the more detail, the better the AI tailors your resume." />
       <div style={{ marginBottom:22 }}>
         <Label>Tone</Label>
         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
