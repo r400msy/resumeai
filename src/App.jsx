@@ -239,7 +239,7 @@ button{cursor:pointer;font-family:'Poppins',sans-serif;}
 textarea{resize:vertical;}
 .field-input{width:100%;padding:10px 0;border:none;border-bottom:2px solid ${t.border};background:transparent;font-size:14px;color:${t.text};transition:border-color .2s;font-family:'Poppins',sans-serif;}
 .field-input:focus{border-bottom-color:${t.copper};outline:none;}
-.field-input::placeholder{color:${t.textSoft};}
+.field-input::placeholder{color:${t.textSoft};opacity:.45;}
 /* ── Responsive ─────────────────────────────────────────── */
 .card-inner{padding:44px 52px;}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;}
@@ -465,7 +465,7 @@ function Step2({ form, setForm, onNext, onBack }) {
         onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textSoft; }}>
         + Add another role
       </button>
-      <Textarea label="Education" value={form.education} onChange={v => setForm(f => ({ ...f, education:v }))} placeholder="BSc Computer Science, University of Manchester, 2020" rows={2} />
+      <Textarea label="Education (write 'None' if not applicable)" value={form.education} onChange={v => setForm(f => ({ ...f, education:v }))} placeholder="e.g. BSc Computer Science, University of Manchester, 2020 — or write None" rows={2} />
       <div style={{ display:"flex", justifyContent:"space-between", marginTop:8 }}>
         <Btn variant="ghost" onClick={onBack}>← Back</Btn>
         <Btn onClick={onNext} disabled={!valid}>Continue →</Btn>
