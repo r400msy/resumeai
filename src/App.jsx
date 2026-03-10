@@ -1,50 +1,51 @@
 import { useState, useEffect, useRef, createContext, useContext } from "react";
 
 const API = "/api/generate";
+const BRAND = "SwiftCV";
 
 /* ── Themes ──────────────────────────────────────────────────── */
 const themes = {
   light: {
-    bg:          "#f0e9dc",
-    surface:     "#fdfaf5",
-    primary:     "#1b2c1e",
-    primHover:   "#263f2b",
-    primaryFg:   "#ffffff",
-    copper:      "#a86420",
-    copperLt:    "#c27f3c",
-    copperPale:  "#fdf0e5",
-    teal:        "#27795a",
-    tealLt:      "#358e6d",
-    gold:        "#b58820",
-    goldLt:      "#cb9e2a",
-    border:      "#d3c8b2",
-    text:        "#1b2c1e",
-    textMid:     "#445a4c",
-    textSoft:    "#87998b",
-    errBg:       "#fff5f0",
-    errBorder:   "#e8b0a0",
-    errText:     "#8b2c20",
+    bg:         "#f4f8ff",
+    surface:    "#ffffff",
+    primary:    "#1565c0",
+    primHover:  "#1248a8",
+    primaryFg:  "#ffffff",
+    copper:     "#1976d2",
+    copperLt:   "#2196f3",
+    copperPale: "#e3f2fd",
+    teal:       "#0097a7",
+    tealLt:     "#00acc1",
+    gold:       "#e65100",
+    goldLt:     "#ef6c00",
+    border:     "#dce7f5",
+    text:       "#0d1f3c",
+    textMid:    "#2d4a70",
+    textSoft:   "#607090",
+    errBg:      "#fef2f2",
+    errBorder:  "#fca5a5",
+    errText:    "#b91c1c",
   },
   dark: {
-    bg:          "#111814",
-    surface:     "#1b2620",
-    primary:     "#c89030",
-    primHover:   "#d8a040",
-    primaryFg:   "#111814",
-    copper:      "#c07838",
-    copperLt:    "#d08848",
-    copperPale:  "#c0783812",
-    teal:        "#3aaa78",
-    tealLt:      "#4abb88",
-    gold:        "#d4a820",
-    goldLt:      "#e4b830",
-    border:      "#2c3c2e",
-    text:        "#c4ccbc",
-    textMid:     "#7a9880",
-    textSoft:    "#607060",
-    errBg:       "#1a1214",
-    errBorder:   "#4a2020",
-    errText:     "#f06050",
+    bg:         "#080e1a",
+    surface:    "#0f1828",
+    primary:    "#5b9cf6",
+    primHover:  "#74aaf8",
+    primaryFg:  "#080e1a",
+    copper:     "#ff9640",
+    copperLt:   "#ffac62",
+    copperPale: "#ff964015",
+    teal:       "#26d0ce",
+    tealLt:     "#40dede",
+    gold:       "#ffcc42",
+    goldLt:     "#ffd966",
+    border:     "#182038",
+    text:       "#ccd8ee",
+    textMid:    "#6888b8",
+    textSoft:   "#486090",
+    errBg:      "#180c0c",
+    errBorder:  "#6b1d1d",
+    errText:    "#f87171",
   },
 };
 
@@ -52,31 +53,48 @@ const Ctx = createContext(themes.light);
 const useT = () => useContext(Ctx);
 
 /* ── Fonts & Dynamic CSS ─────────────────────────────────────── */
-const fonts = `@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');`;
+const fonts = `@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');`;
 
 const buildCss = t => `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{background:${t.bg};color:${t.text};font-family:'DM Sans',sans-serif;min-height:100vh;transition:background-color .4s,color .3s;}
+html,body{scroll-behavior:smooth;}
+body{background:${t.bg};color:${t.text};font-family:'Poppins',sans-serif;min-height:100vh;transition:background-color .4s,color .3s;}
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:${t.bg};}
 ::-webkit-scrollbar-thumb{background:${t.border};border-radius:3px;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-.a0{animation:fadeUp .6s cubic-bezier(.16,1,.3,1) both;}
-.a1{animation:fadeUp .6s .07s cubic-bezier(.16,1,.3,1) both;}
-.a2{animation:fadeUp .6s .14s cubic-bezier(.16,1,.3,1) both;}
-.a3{animation:fadeUp .6s .21s cubic-bezier(.16,1,.3,1) both;}
-.a4{animation:fadeUp .6s .28s cubic-bezier(.16,1,.3,1) both;}
-.a5{animation:fadeUp .6s .35s cubic-bezier(.16,1,.3,1) both;}
-.a6{animation:fadeUp .6s .42s cubic-bezier(.16,1,.3,1) both;}
-input,textarea,select{outline:none;font-family:'DM Sans',sans-serif;}
-button{cursor:pointer;font-family:'DM Sans',sans-serif;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+@keyframes shimmer{0%{background-position:-400px 0;}100%{background-position:400px 0;}}
+.a0{animation:fadeUp .55s cubic-bezier(.16,1,.3,1) both;}
+.a1{animation:fadeUp .55s .06s cubic-bezier(.16,1,.3,1) both;}
+.a2{animation:fadeUp .55s .12s cubic-bezier(.16,1,.3,1) both;}
+.a3{animation:fadeUp .55s .18s cubic-bezier(.16,1,.3,1) both;}
+.a4{animation:fadeUp .55s .24s cubic-bezier(.16,1,.3,1) both;}
+.a5{animation:fadeUp .55s .30s cubic-bezier(.16,1,.3,1) both;}
+input,textarea,select{outline:none;font-family:'Poppins',sans-serif;}
+button{cursor:pointer;font-family:'Poppins',sans-serif;}
 textarea{resize:vertical;}
-.field-input{width:100%;padding:10px 0;border:none;border-bottom:1.5px solid ${t.border};background:transparent;font-size:14.5px;color:${t.text};transition:border-color .2s;font-family:'DM Sans',sans-serif;}
+.field-input{width:100%;padding:10px 0;border:none;border-bottom:2px solid ${t.border};background:transparent;font-size:14px;color:${t.text};transition:border-color .2s;font-family:'Poppins',sans-serif;}
 .field-input:focus{border-bottom-color:${t.copper};outline:none;}
 .field-input::placeholder{color:${t.textSoft};}
+/* ── Responsive ─────────────────────────────────────────── */
+.card-inner{padding:44px 52px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;}
+.step-label{font-size:12.5px;}
+.hero-stat{text-align:center;padding:0 32px;}
+.hero-stat+.hero-stat{border-left:1px solid ${t.border};}
+@media(max-width:680px){
+  .card-inner{padding:28px 24px;}
+  .hero-stat{padding:0 20px;}
+}
+@media(max-width:480px){
+  .card-inner{padding:20px 16px;}
+  .two-col{grid-template-columns:1fr;}
+  .step-label{display:none;}
+  .hero-stat{padding:0 12px;}
+}
 `;
 
 /* ── Upsell Config ───────────────────────────────────────────── */
@@ -94,14 +112,9 @@ function ThemeToggle({ mode, onToggle }) {
   const dark = mode === "dark";
   const [h, setH] = useState(false);
   return (
-    <button
-      onClick={onToggle}
-      onMouseEnter={() => setH(true)}
-      onMouseLeave={() => setH(false)}
+    <button onClick={onToggle} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       title={dark ? "Switch to light mode" : "Switch to dark mode"}
-      style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:"4px 2px", opacity:h?.85:1, transition:"opacity .15s" }}
-    >
-      {/* Sun */}
+      style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"none", cursor:"pointer", padding:"4px 2px", opacity:h?.85:1, transition:"opacity .15s" }}>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={dark ? t.textSoft : t.copper} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="5"/>
         <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
@@ -109,15 +122,9 @@ function ThemeToggle({ mode, onToggle }) {
         <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
       </svg>
-      {/* Pill */}
       <div style={{ width:36, height:20, borderRadius:10, background:dark?t.primary:t.border, position:"relative", transition:"background .35s ease", flexShrink:0 }}>
-        <div style={{
-          width:14, height:14, borderRadius:"50%", background:"#fff",
-          position:"absolute", top:3, left:dark?19:3,
-          transition:"left .3s ease", boxShadow:"0 1px 4px rgba(0,0,0,.3)",
-        }} />
+        <div style={{ width:14, height:14, borderRadius:"50%", background:"#fff", position:"absolute", top:3, left:dark?19:3, transition:"left .3s ease", boxShadow:"0 1px 4px rgba(0,0,0,.3)" }} />
       </div>
-      {/* Moon */}
       <svg width="13" height="13" viewBox="0 0 24 24" fill={dark?t.primary:"none"} stroke={dark?t.primary:t.textSoft} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
       </svg>
@@ -128,17 +135,13 @@ function ThemeToggle({ mode, onToggle }) {
 /* ── Primitives ──────────────────────────────────────────────── */
 function Label({ children }) {
   const t = useT();
-  return (
-    <label style={{ display:"block", fontSize:10.5, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".1em", marginBottom:9 }}>
-      {children}
-    </label>
-  );
+  return <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>{children}</label>;
 }
 
 function Input({ label, value, onChange, placeholder, type="text", hint }) {
   const t = useT();
   return (
-    <div style={{ marginBottom:24 }}>
+    <div style={{ marginBottom:22 }}>
       {label && <Label>{label}</Label>}
       <input type={type} value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)} className="field-input" />
       {hint && <p style={{ fontSize:11, color:t.textSoft, marginTop:5 }}>{hint}</p>}
@@ -148,7 +151,7 @@ function Input({ label, value, onChange, placeholder, type="text", hint }) {
 
 function Textarea({ label, value, onChange, placeholder, rows=4 }) {
   return (
-    <div style={{ marginBottom:24 }}>
+    <div style={{ marginBottom:22 }}>
       {label && <Label>{label}</Label>}
       <textarea value={value} placeholder={placeholder} rows={rows} onChange={e => onChange(e.target.value)} className="field-input" style={{ lineHeight:1.65 }} />
     </div>
@@ -158,54 +161,35 @@ function Textarea({ label, value, onChange, placeholder, rows=4 }) {
 function Btn({ children, onClick, variant="primary", disabled, small, style:sx={} }) {
   const t = useT();
   const [h, setH] = useState(false);
-  const base = {
-    padding: small ? "8px 20px" : "12px 28px",
-    borderRadius: 6, fontSize: small ? 13 : 14,
-    fontWeight: 600, border: "none",
-    transition: "all .2s ease",
-    opacity: disabled ? .45 : 1,
-    cursor: disabled ? "not-allowed" : "pointer",
-    letterSpacing: ".01em", ...sx,
-  };
+  const base = { padding:small?"8px 18px":"11px 26px", borderRadius:8, fontSize:small?13:14, fontWeight:600, border:"none", letterSpacing:".01em", transition:"all .2s ease", opacity:disabled?.45:1, cursor:disabled?"not-allowed":"pointer", ...sx };
   const vs = {
-    primary: { background:h&&!disabled?t.primHover:t.primary, color:t.primaryFg, boxShadow:h&&!disabled?`0 6px 22px ${t.primary}44`:`0 2px 8px ${t.primary}25`, transform:h&&!disabled?"translateY(-1px)":"none" },
-    sky:     { background:h&&!disabled?t.tealLt:t.teal, color:t.primaryFg, boxShadow:h&&!disabled?`0 6px 22px ${t.teal}44`:`0 2px 8px ${t.teal}25`, transform:h&&!disabled?"translateY(-1px)":"none" },
-    ghost:   { background:"transparent", color:h?t.primary:t.textMid, border:`1.5px solid ${h?t.primary:t.border}` },
-    copper:  { background:h&&!disabled?t.copperLt:t.copper, color:t.primaryFg, boxShadow:h&&!disabled?`0 6px 22px ${t.copper}44`:`0 2px 8px ${t.copper}25`, transform:h&&!disabled?"translateY(-1px)":"none" },
+    primary: { background:h&&!disabled?t.primHover:t.primary, color:t.primaryFg, boxShadow:h&&!disabled?`0 6px 22px ${t.primary}50`:`0 2px 8px ${t.primary}30`, transform:h&&!disabled?"translateY(-1px)":"none" },
+    sky:     { background:h&&!disabled?t.tealLt:t.teal, color:t.primaryFg, boxShadow:h&&!disabled?`0 6px 22px ${t.teal}50`:`0 2px 8px ${t.teal}30`, transform:h&&!disabled?"translateY(-1px)":"none" },
+    ghost:   { background:"transparent", color:h?t.copper:t.textMid, border:`1.5px solid ${h?t.copper:t.border}` },
+    copper:  { background:h&&!disabled?t.copperLt:t.copper, color:t.primaryFg, boxShadow:h&&!disabled?`0 6px 22px ${t.copper}50`:`0 2px 8px ${t.copper}30`, transform:h&&!disabled?"translateY(-1px)":"none" },
   };
-  return (
-    <button onClick={disabled?undefined:onClick} disabled={disabled} style={{...base,...vs[variant]}} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}>
-      {children}
-    </button>
-  );
+  return <button onClick={disabled?undefined:onClick} disabled={disabled} style={{...base,...vs[variant]}} onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}>{children}</button>;
 }
 
 /* ── Steps Indicator ─────────────────────────────────────────── */
 function StepsBar({ current }) {
   const t = useT();
   return (
-    <div style={{ display:"flex", alignItems:"center", marginBottom:44 }}>
+    <div style={{ display:"flex", alignItems:"center", marginBottom:40 }}>
       {steps.map((s, i) => (
         <div key={s} style={{ display:"flex", alignItems:"center", flex:i<steps.length-1?1:"none" }}>
-          <div style={{ display:"flex", alignItems:"center", gap:9, flexShrink:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
             <div style={{
-              width:29, height:29, borderRadius:"50%", fontSize:11, fontWeight:700,
+              width:28, height:28, borderRadius:"50%", fontSize:11, fontWeight:700,
               display:"flex", alignItems:"center", justifyContent:"center",
               background:i<current?t.copper:i===current?t.primary:"transparent",
               border:`2px solid ${i<current?t.copper:i===current?t.primary:t.border}`,
-              color:i<=current?t.primaryFg:t.textSoft,
-              transition:"all .35s ease",
-              boxShadow:i===current?`0 0 0 4px ${t.primary}14`:"none",
-            }}>
-              {i < current ? "✓" : i + 1}
-            </div>
-            <span style={{ fontSize:12.5, fontWeight:i===current?600:400, color:i===current?t.primary:i<current?t.copper:t.textSoft, transition:"color .35s" }}>
-              {s}
-            </span>
+              color:i<=current?t.primaryFg:t.textSoft, transition:"all .3s ease",
+              boxShadow:i===current?`0 0 0 4px ${t.primary}18`:"none",
+            }}>{i < current ? "✓" : i + 1}</div>
+            <span className="step-label" style={{ fontWeight:i===current?600:400, color:i===current?t.primary:i<current?t.copper:t.textSoft, transition:"color .3s" }}>{s}</span>
           </div>
-          {i < steps.length - 1 && (
-            <div style={{ flex:1, height:1.5, margin:"0 14px", background:i<current?t.copper:t.border, transition:"background .4s ease" }} />
-          )}
+          {i < steps.length - 1 && <div style={{ flex:1, height:2, margin:"0 12px", background:i<current?t.copper:t.border, transition:"background .4s ease", borderRadius:2 }} />}
         </div>
       ))}
     </div>
@@ -217,10 +201,8 @@ function StepHead({ title, subtitle }) {
   const t = useT();
   return (
     <>
-      <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:30, fontWeight:700, marginBottom:6, color:t.primary, letterSpacing:"-.01em" }}>
-        {title}
-      </h2>
-      <p style={{ color:t.textSoft, marginBottom:34, fontSize:14, lineHeight:1.6 }}>{subtitle}</p>
+      <h2 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:26, fontWeight:700, marginBottom:6, color:t.primary, letterSpacing:"-.02em" }}>{title}</h2>
+      <p style={{ color:t.textSoft, marginBottom:32, fontSize:13.5, lineHeight:1.6 }}>{subtitle}</p>
     </>
   );
 }
@@ -231,7 +213,7 @@ function Step1({ form, setForm, onNext }) {
   return (
     <div className="a0">
       <StepHead title="Personal Details" subtitle="Let's start with the basics." />
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 28px" }}>
+      <div className="two-col">
         <Input label="Full Name" value={form.name} onChange={u("name")} placeholder="Alex Johnson" />
         <Input label="Job Title" value={form.title} onChange={u("title")} placeholder="Senior UX Designer" />
         <Input label="Email" value={form.email} onChange={u("email")} placeholder="alex@email.com" type="email" />
@@ -256,18 +238,12 @@ function Step2({ form, setForm, onNext, onBack }) {
     <div className="a0">
       <StepHead title="Work Experience" subtitle="Add your roles — AI will write compelling bullet points." />
       {form.experience.map((exp, i) => (
-        <div key={i} style={{
-          borderTop:`1px solid ${t.border}`, borderRight:`1px solid ${t.border}`,
-          borderBottom:`1px solid ${t.border}`, borderLeft:`3px solid ${t.copper}`,
-          borderRadius:"0 8px 8px 0", padding:"22px 22px 4px", marginBottom:16, background:t.surface,
-        }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
-            <span style={{ fontSize:10.5, fontWeight:700, color:t.copper, textTransform:"uppercase", letterSpacing:".1em" }}>Role {i + 1}</span>
-            {form.experience.length > 1 && (
-              <button onClick={() => rem(i)} style={{ background:"none", border:"none", color:t.textSoft, fontSize:16, lineHeight:1 }}>✕</button>
-            )}
+        <div key={i} style={{ border:`1px solid ${t.border}`, borderLeft:`3px solid ${t.copper}`, borderRadius:"0 10px 10px 0", padding:"20px 20px 4px", marginBottom:14, background:t.surface }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+            <span style={{ fontSize:10, fontWeight:700, color:t.copper, textTransform:"uppercase", letterSpacing:".12em" }}>Role {i + 1}</span>
+            {form.experience.length > 1 && <button onClick={() => rem(i)} style={{ background:"none", border:"none", color:t.textSoft, fontSize:16, lineHeight:1 }}>✕</button>}
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0 28px" }}>
+          <div className="two-col">
             <Input label="Company" value={exp.company} onChange={v => upd(i,"company",v)} placeholder="Acme Ltd" />
             <Input label="Job Title" value={exp.role} onChange={v => upd(i,"role",v)} placeholder="Product Manager" />
           </div>
@@ -275,7 +251,7 @@ function Step2({ form, setForm, onNext, onBack }) {
           <Textarea label="What did you do? (rough notes fine)" value={exp.description} onChange={v => upd(i,"description",v)} placeholder="Managed roadmap, led team of 5, launched 3 features, increased retention by 18%..." rows={3} />
         </div>
       ))}
-      <button onClick={add} style={{ width:"100%", padding:12, background:"transparent", border:`1.5px dashed ${t.border}`, borderRadius:6, color:t.textSoft, fontSize:13, marginBottom:24, transition:"all .2s" }}
+      <button onClick={add} style={{ width:"100%", padding:11, background:"transparent", border:`1.5px dashed ${t.border}`, borderRadius:8, color:t.textSoft, fontSize:13, marginBottom:22, transition:"all .2s" }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = t.copper; e.currentTarget.style.color = t.copper; }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textSoft; }}>
         + Add another role
@@ -299,17 +275,11 @@ function Step3({ form, setForm, onNext, onBack }) {
       <StepHead title="Skills & Target Role" subtitle="This is what the AI optimises for." />
       <Textarea label="Your Skills" value={form.skills} onChange={u("skills")} placeholder="React, TypeScript, Figma, Python, SQL, Agile, Leadership..." rows={3} />
       <Input label="Target Job" value={form.targetJob} onChange={u("targetJob")} placeholder="e.g. Senior Frontend Engineer at a tech startup" hint="Be specific — the more detail, the better the AI tailors your resume." />
-      <div style={{ marginBottom:24 }}>
+      <div style={{ marginBottom:22 }}>
         <Label>Tone</Label>
         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
           {tones.map(tone => (
-            <button key={tone} onClick={() => setForm(f => ({ ...f, tone }))} style={{
-              padding:"7px 16px", borderRadius:20, fontSize:13, fontWeight:500, cursor:"pointer",
-              border:`1.5px solid ${form.tone===tone?t.primary:t.border}`,
-              background:form.tone===tone?t.primary:"transparent",
-              color:form.tone===tone?t.primaryFg:t.textMid,
-              transition:"all .18s", textTransform:"capitalize",
-            }}>{tone}</button>
+            <button key={tone} onClick={() => setForm(f => ({ ...f, tone }))} style={{ padding:"6px 16px", borderRadius:20, fontSize:13, fontWeight:500, cursor:"pointer", border:`1.5px solid ${form.tone===tone?t.primary:t.border}`, background:form.tone===tone?t.primary:"transparent", color:form.tone===tone?t.primaryFg:t.textMid, transition:"all .18s", textTransform:"capitalize" }}>{tone}</button>
           ))}
         </div>
       </div>
@@ -326,28 +296,20 @@ function UpsellCard({ item, onBuy, bought }) {
   const t = useT();
   const [h, setH] = useState(false);
   const color = t[item.ck];
-  const colorLt = t[item.ck + "Lt"];
   return (
-    <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} style={{
-      border:`1px solid ${h?color:t.border}`, borderRadius:8, padding:"16px 20px",
-      background:t.surface, transition:"all .2s", display:"flex", alignItems:"center", gap:18,
-      boxShadow:h?`0 6px 22px ${color}18`:`0 1px 4px ${t.primary}06`,
-      transform:h?"translateY(-2px)":"none",
-    }}>
-      <div style={{ width:42, height:42, borderRadius:8, flexShrink:0, background:`${color}12`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:19, color, fontWeight:700 }}>
-        {item.icon}
-      </div>
+    <div onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)} style={{ border:`1px solid ${h?color:t.border}`, borderRadius:10, padding:"14px 18px", background:t.surface, transition:"all .2s", display:"flex", alignItems:"center", gap:16, boxShadow:h?`0 6px 24px ${color}20`:"none", transform:h?"translateY(-2px)":"none" }}>
+      <div style={{ width:40, height:40, borderRadius:10, flexShrink:0, background:`${color}12`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, color, fontWeight:700 }}>{item.icon}</div>
       <div style={{ flex:1 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div style={{ flex:1 }}>
-            <p style={{ fontWeight:600, fontSize:14, color:t.primary }}>{item.title}</p>
-            <p style={{ fontSize:12, color:t.textSoft, marginTop:3, lineHeight:1.5 }}>{item.desc}</p>
+            <p style={{ fontWeight:600, fontSize:13.5, color:t.primary }}>{item.title}</p>
+            <p style={{ fontSize:11.5, color:t.textSoft, marginTop:2, lineHeight:1.5 }}>{item.desc}</p>
           </div>
-          <div style={{ marginLeft:20, textAlign:"right", flexShrink:0 }}>
-            <div style={{ fontSize:15, fontWeight:700, color }}>{item.price}</div>
+          <div style={{ marginLeft:16, textAlign:"right", flexShrink:0 }}>
+            <div style={{ fontSize:14, fontWeight:700, color }}>{item.price}</div>
             {bought
-              ? <div style={{ color:t.teal, fontSize:12, fontWeight:600, marginTop:4 }}>✓ Added — generating...</div>
-              : <button onClick={() => onBuy(item.id)} style={{ marginTop:6, padding:"5px 13px", borderRadius:4, fontSize:12, fontWeight:600, border:`1.5px solid ${color}`, background:"transparent", color, cursor:"pointer", transition:"all .18s", display:"block" }}
+              ? <div style={{ color:t.teal, fontSize:11.5, fontWeight:600, marginTop:3 }}>✓ Added</div>
+              : <button onClick={() => onBuy(item.id)} style={{ marginTop:5, padding:"4px 12px", borderRadius:6, fontSize:11.5, fontWeight:600, border:`1.5px solid ${color}`, background:"transparent", color, cursor:"pointer", transition:"all .18s", display:"block" }}
                   onMouseEnter={e => { e.currentTarget.style.background = color; e.currentTarget.style.color = t.primaryFg; }}
                   onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = color; }}>
                   {item.cta} →
@@ -360,12 +322,131 @@ function UpsellCard({ item, onBuy, bought }) {
   );
 }
 
+/* ── Paywall Overlay ─────────────────────────────────────────── */
+function Paywall({ resume, targetJob, name, onUnlock }) {
+  const t = useT();
+  const [btnH, setBtnH] = useState(false);
+
+  const features = [
+    "Full professional CV — ready to send",
+    "ATS-optimised for applicant tracking systems",
+    "Tailored specifically to your target role",
+    "Instant copy & download in plain text",
+  ];
+
+  return (
+    <div style={{ position:"relative", marginBottom:28, animation:"fadeIn .4s ease both" }}>
+
+      {/* Blurred resume preview */}
+      <div style={{ position:"relative", overflow:"hidden", borderRadius:10, border:`1px solid ${t.border}` }}>
+        <div style={{
+          padding:"36px 40px", fontFamily:"'Poppins',sans-serif",
+          fontSize:13, lineHeight:1.9, color:t.text, whiteSpace:"pre-wrap",
+          background:t.surface, filter:"blur(5px)", userSelect:"none", pointerEvents:"none",
+          maxHeight:260, overflow:"hidden",
+        }}>
+          {resume}
+        </div>
+        {/* Gradient fade */}
+        <div style={{
+          position:"absolute", bottom:0, left:0, right:0, height:160,
+          background:`linear-gradient(to bottom, transparent, ${t.surface})`,
+          pointerEvents:"none",
+        }} />
+        {/* Lock icon centered */}
+        <div style={{ position:"absolute", top:"50%", left:"50%", transform:"translate(-50%,-50%)", opacity:.15, pointerEvents:"none" }}>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill={t.primary} stroke="none">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* Paywall card */}
+      <div style={{
+        marginTop:"-1px", border:`1.5px solid ${t.copper}40`, borderRadius:"0 0 14px 14px",
+        background:t.surface, padding:"32px 36px 28px",
+        boxShadow:`0 12px 48px ${t.primary}14`,
+      }}>
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
+          <div style={{ width:36, height:36, borderRadius:8, background:t.primary, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={t.primaryFg} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div>
+            <h3 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:19, fontWeight:800, color:t.primary, letterSpacing:"-.02em" }}>
+              Your CV is Ready to Unlock
+            </h3>
+            <p style={{ fontSize:12.5, color:t.textSoft, marginTop:2 }}>
+              Tailored for <strong style={{ color:t.copper }}>{targetJob}</strong> — crafted in seconds by AI
+            </p>
+          </div>
+        </div>
+
+        <p style={{ fontSize:13.5, color:t.textMid, lineHeight:1.7, marginBottom:20, marginTop:14 }}>
+          Your professional CV has been carefully crafted by our AI and is personalised specifically for you, <strong style={{ color:t.text }}>{name}</strong>. Unlock it now to copy, download, and start applying today.
+        </p>
+
+        {/* Features */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px 16px", marginBottom:24 }}>
+          {features.map(f => (
+            <div key={f} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+              <div style={{ width:18, height:18, borderRadius:"50%", background:`${t.copper}18`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1 }}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={t.copper} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <span style={{ fontSize:12.5, color:t.textMid, lineHeight:1.5 }}>{f}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Price + CTA */}
+        <div style={{ display:"flex", alignItems:"center", gap:20, flexWrap:"wrap" }}>
+          <div>
+            <div style={{ display:"flex", alignItems:"baseline", gap:6 }}>
+              <span style={{ fontFamily:"'Montserrat',sans-serif", fontSize:32, fontWeight:800, color:t.primary, letterSpacing:"-.03em" }}>£4.99</span>
+              <span style={{ fontSize:12, color:t.textSoft, textDecoration:"line-through" }}>£14.99</span>
+            </div>
+            <p style={{ fontSize:11, color:t.textSoft, marginTop:2 }}>One-time · No subscription</p>
+          </div>
+          <button
+            onClick={onUnlock}
+            onMouseEnter={() => setBtnH(true)}
+            onMouseLeave={() => setBtnH(false)}
+            style={{
+              flex:1, minWidth:200, padding:"14px 28px", borderRadius:10, fontSize:15,
+              fontWeight:700, border:"none", cursor:"pointer", letterSpacing:".01em",
+              background:btnH?t.primHover:t.primary, color:t.primaryFg,
+              boxShadow:btnH?`0 10px 36px ${t.primary}55`:`0 4px 20px ${t.primary}35`,
+              transform:btnH?"translateY(-2px)":"none", transition:"all .22s ease",
+            }}
+          >
+            🔓 Unlock My CV Now →
+          </button>
+        </div>
+
+        {/* Trust signals */}
+        <div style={{ display:"flex", gap:20, marginTop:16, flexWrap:"wrap" }}>
+          {["🔒 Secure Checkout", "⚡ Instant Access", "↩ 30-Day Guarantee", "👥 50,000+ Job Seekers"].map(s => (
+            <span key={s} style={{ fontSize:11, color:t.textSoft, fontWeight:500 }}>{s}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Step 4 ──────────────────────────────────────────────────── */
 function Step4({ form, onBack, onReset }) {
   const t = useT();
   const [resume, setResume] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
   const [copied, setCopied] = useState(false);
   const [bought, setBought] = useState({});
   const [upsellContent, setUpsellContent] = useState({});
@@ -398,7 +479,7 @@ Write a complete resume in clean plain text:
   };
 
   const generate = async () => {
-    setLoading(true); setError("");
+    setLoading(true); setError(""); setUnlocked(false);
     try {
       const res = await fetch(API, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, messages:[{ role:"user", content:buildPrompt() }] }) });
       const data = await res.json();
@@ -434,16 +515,17 @@ Write a complete resume in clean plain text:
 
   return (
     <div className="a0">
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:28 }}>
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:26, flexWrap:"wrap", gap:12 }}>
         <div>
-          <h2 style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:30, fontWeight:700, color:t.primary, marginBottom:5, letterSpacing:"-.01em" }}>
-            Your Resume is Ready
+          <h2 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:26, fontWeight:700, color:t.primary, marginBottom:4, letterSpacing:"-.02em" }}>
+            {unlocked ? "Your Resume is Ready ✓" : "Your Resume Has Been Generated"}
           </h2>
           <p style={{ fontSize:13, color:t.textSoft }}>
             Tailored for: <span style={{ color:t.copper, fontWeight:600 }}>{form.targetJob}</span>
           </p>
         </div>
-        {!loading && resume && (
+        {unlocked && !loading && resume && (
           <div style={{ display:"flex", gap:8 }}>
             <Btn variant="ghost" onClick={generate} small>↺ Redo</Btn>
             <Btn variant="copper" onClick={copy} small>{copied ? "✓ Copied!" : "Copy Text"}</Btn>
@@ -451,49 +533,43 @@ Write a complete resume in clean plain text:
         )}
       </div>
 
-      {tabs.length > 1 && (
-        <div style={{ display:"flex", gap:0, marginBottom:20, borderBottom:`1.5px solid ${t.border}` }}>
+      {/* Tabs (only when unlocked + extra content) */}
+      {unlocked && tabs.length > 1 && (
+        <div style={{ display:"flex", marginBottom:20, borderBottom:`2px solid ${t.border}` }}>
           {tabs.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
-              padding:"9px 18px", fontSize:13, fontWeight:600, border:"none",
-              background:"none", cursor:"pointer",
-              color:activeTab===tab.id?t.primary:t.textSoft,
-              borderBottom:`2px solid ${activeTab===tab.id?t.copper:"transparent"}`,
-              marginBottom:-2, transition:"all .18s",
-            }}>{tab.label}</button>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding:"9px 18px", fontSize:13, fontWeight:600, border:"none", background:"none", cursor:"pointer", color:activeTab===tab.id?t.primary:t.textSoft, borderBottom:`2px solid ${activeTab===tab.id?t.copper:"transparent"}`, marginBottom:-2, transition:"all .18s" }}>{tab.label}</button>
           ))}
         </div>
       )}
 
+      {/* Loading state */}
       {isLoading ? (
-        <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:10, padding:"52px 48px", textAlign:"center", marginBottom:24 }}>
-          <div style={{ width:34, height:34, borderRadius:"50%", margin:"0 auto 20px", border:`2.5px solid ${t.border}`, borderTopColor:t.copper, animation:"spin .8s linear infinite" }} />
-          <p style={{ fontFamily:"'Cormorant Garamond',serif", color:t.textMid, fontSize:20, fontWeight:600, fontStyle:"italic" }}>Crafting your content...</p>
-          <p style={{ color:t.textSoft, fontSize:13, marginTop:6 }}>Optimising for {form.targetJob}</p>
+        <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, padding:"48px 32px", textAlign:"center", marginBottom:22 }}>
+          <div style={{ width:32, height:32, borderRadius:"50%", margin:"0 auto 18px", border:`2.5px solid ${t.border}`, borderTopColor:t.copper, animation:"spin .8s linear infinite" }} />
+          <p style={{ fontFamily:"'Montserrat',sans-serif", color:t.textMid, fontSize:18, fontWeight:600 }}>Crafting your CV...</p>
+          <p style={{ color:t.textSoft, fontSize:13, marginTop:5 }}>Optimising for {form.targetJob}</p>
         </div>
       ) : error && activeTab === "resume" ? (
-        <div style={{ background:t.errBg, border:`1px solid ${t.errBorder}`, borderRadius:8, padding:20, marginBottom:24 }}>
+        <div style={{ background:t.errBg, border:`1px solid ${t.errBorder}`, borderRadius:8, padding:18, marginBottom:22 }}>
           <p style={{ color:t.errText, fontSize:14 }}>{error}</p>
-          <Btn variant="ghost" onClick={generate} small style={{ marginTop:12 }}>Try Again</Btn>
+          <Btn variant="ghost" onClick={generate} small style={{ marginTop:10 }}>Try Again</Btn>
         </div>
+      ) : resume && !unlocked && activeTab === "resume" ? (
+        /* ── PAYWALL ── */
+        <Paywall resume={resume} targetJob={form.targetJob} name={form.name} onUnlock={() => setUnlocked(true)} />
       ) : activeContent ? (
-        <div style={{
-          background:t.surface, border:`1px solid ${t.border}`, borderRadius:8,
-          padding:"44px 48px", marginBottom:24, fontFamily:"'DM Sans',sans-serif",
-          fontSize:13.5, lineHeight:1.9, color:t.text, whiteSpace:"pre-wrap",
-          boxShadow:`0 4px 32px ${t.primary}0b`,
-        }}>
+        /* ── Unlocked content ── */
+        <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:10, padding:"36px 40px", marginBottom:22, fontFamily:"'Poppins',sans-serif", fontSize:13, lineHeight:1.9, color:t.text, whiteSpace:"pre-wrap", boxShadow:`0 2px 20px ${t.primary}08` }}>
           {activeContent}
         </div>
       ) : null}
 
-      {activeTab === "resume" && !loading && resume && (
-        <div style={{ marginBottom:28 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:18 }}>
+      {/* Upsells — only shown after unlock */}
+      {unlocked && activeTab === "resume" && !loading && resume && (
+        <div style={{ marginBottom:26 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
             <div style={{ flex:1, height:1, background:t.border }} />
-            <span style={{ fontSize:10.5, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".1em", whiteSpace:"nowrap" }}>
-              Supercharge Your Application
-            </span>
+            <span style={{ fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", whiteSpace:"nowrap" }}>Supercharge Your Application</span>
             <div style={{ flex:1, height:1, background:t.border }} />
           </div>
           <div style={{ display:"grid", gap:10 }}>
@@ -516,68 +592,46 @@ function Hero({ onStart }) {
   const t = useT();
   const [btnH, setBtnH] = useState(false);
   return (
-    <div style={{ maxWidth:720, width:"100%", margin:"0 auto", padding:"40px 24px", textAlign:"center" }}>
-      <div className="a0" style={{
-        display:"inline-flex", alignItems:"center", gap:8, padding:"5px 16px",
-        borderRadius:24, background:t.copperPale, border:`1px solid ${t.copper}38`,
-        color:t.copper, fontSize:11.5, fontWeight:600, letterSpacing:".07em",
-        textTransform:"uppercase", marginBottom:36,
-      }}>
+    <div style={{ maxWidth:700, width:"100%", margin:"0 auto", padding:"40px 24px", textAlign:"center" }}>
+      <div className="a0" style={{ display:"inline-flex", alignItems:"center", gap:8, padding:"5px 16px", borderRadius:24, background:t.copperPale, border:`1px solid ${t.copper}40`, color:t.copper, fontSize:11, fontWeight:600, letterSpacing:".08em", textTransform:"uppercase", marginBottom:32 }}>
         <span style={{ width:6, height:6, borderRadius:"50%", background:t.copper, display:"inline-block", animation:"pulse 2s infinite" }} />
         AI-Powered · Free to Start
       </div>
 
-      <h1 className="a1" style={{
-        fontFamily:"'Cormorant Garamond',serif", fontWeight:700,
-        fontSize:"clamp(44px,7.5vw,76px)", lineHeight:1.04,
-        color:t.primary, marginBottom:28, letterSpacing:"-.02em",
-      }}>
-        Land Your Next Job<br />
-        <em style={{ fontStyle:"italic", color:t.copper }}>with an AI Resume</em>
+      <h1 className="a1" style={{ fontFamily:"'Montserrat',sans-serif", fontWeight:800, fontSize:"clamp(36px,6.5vw,68px)", lineHeight:1.08, color:t.primary, marginBottom:24, letterSpacing:"-.03em" }}>
+        Land Your Dream Job<br />
+        <em style={{ fontStyle:"italic", fontWeight:700, color:t.copper }}>with an AI-Crafted CV</em>
       </h1>
 
-      <div className="a2" style={{ display:"flex", alignItems:"center", gap:16, maxWidth:280, margin:"0 auto 32px" }}>
-        <div style={{ flex:1, height:1, background:t.border }} />
-        <div style={{ width:5, height:5, borderRadius:"50%", background:t.copper, opacity:.75 }} />
-        <div style={{ width:5, height:5, borderRadius:"50%", background:t.border }} />
-        <div style={{ width:5, height:5, borderRadius:"50%", background:t.copper, opacity:.75 }} />
-        <div style={{ flex:1, height:1, background:t.border }} />
+      <div className="a2" style={{ display:"flex", alignItems:"center", gap:12, maxWidth:240, margin:"0 auto 28px" }}>
+        <div style={{ flex:1, height:2, background:t.copperPale, borderRadius:2 }} />
+        <div style={{ width:6, height:6, borderRadius:"50%", background:t.copper }} />
+        <div style={{ flex:1, height:2, background:t.copperPale, borderRadius:2 }} />
       </div>
 
-      <p className="a2" style={{ fontSize:17, color:t.textMid, lineHeight:1.72, maxWidth:480, margin:"0 auto 44px" }}>
-        Answer a few questions and get a tailored, recruiter-ready resume in under 2 minutes. Free to generate — optional extras available.
+      <p className="a2" style={{ fontSize:16, color:t.textMid, lineHeight:1.75, maxWidth:460, margin:"0 auto 40px" }}>
+        Answer a few questions and get a tailored, recruiter-ready CV in under 2 minutes. Professional. ATS-optimised. Built for your target role.
       </p>
 
-      <div className="a3" style={{ display:"flex", justifyContent:"center", marginBottom:48 }}>
-        {[{ n:"2 min", l:"to build" }, { n:"ATS", l:"optimised" }, { n:"Free", l:"to generate" }].map((s, i) => (
-          <div key={s.n} style={{ textAlign:"center", padding:"0 36px", borderRight:i<2?`1px solid ${t.border}`:"none" }}>
-            <div style={{ fontFamily:"'Cormorant Garamond',serif", fontSize:30, fontWeight:700, color:t.primary, lineHeight:1 }}>{s.n}</div>
-            <div style={{ fontSize:12, color:t.textSoft, marginTop:5, fontWeight:400, letterSpacing:".02em" }}>{s.l}</div>
+      <div className="a3" style={{ display:"flex", justifyContent:"center", marginBottom:44 }}>
+        {[{ n:"2 min", l:"to build" }, { n:"ATS", l:"optimised" }, { n:"50k+", l:"job seekers" }].map(s => (
+          <div key={s.n} className="hero-stat">
+            <div style={{ fontFamily:"'Montserrat',sans-serif", fontSize:28, fontWeight:800, color:t.primary, lineHeight:1 }}>{s.n}</div>
+            <div style={{ fontSize:11.5, color:t.textSoft, marginTop:4, letterSpacing:".03em" }}>{s.l}</div>
           </div>
         ))}
       </div>
 
       <div className="a4">
-        <button onClick={onStart} onMouseEnter={() => setBtnH(true)} onMouseLeave={() => setBtnH(false)} style={{
-          padding:"15px 48px", fontSize:15, fontWeight:600,
-          background:btnH?t.primHover:t.primary, color:t.primaryFg,
-          border:"none", borderRadius:6, cursor:"pointer",
-          boxShadow:btnH?`0 10px 36px ${t.primary}48`:`0 4px 20px ${t.primary}30`,
-          transform:btnH?"translateY(-2px)":"none",
-          transition:"all .22s ease", letterSpacing:".02em",
-        }}>
-          Build My Resume — Free →
+        <button onClick={onStart} onMouseEnter={() => setBtnH(true)} onMouseLeave={() => setBtnH(false)} style={{ padding:"14px 44px", fontSize:15, fontWeight:700, letterSpacing:".02em", background:btnH?t.primHover:t.primary, color:t.primaryFg, border:"none", borderRadius:10, cursor:"pointer", boxShadow:btnH?`0 12px 40px ${t.primary}55`:`0 4px 20px ${t.primary}35`, transform:btnH?"translateY(-2px)":"none", transition:"all .22s ease" }}>
+          Build My CV — Free →
         </button>
-        <p style={{ fontSize:12, color:t.textSoft, marginTop:14 }}>No sign-up required · Takes 2 minutes</p>
+        <p style={{ fontSize:12, color:t.textSoft, marginTop:13 }}>No sign-up required · 2 minutes · Unlock from £4.99</p>
       </div>
 
-      <div className="a5" style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginTop:52 }}>
-        {["✓ ATS Optimised", "✓ Recruiter-Approved Format", "✓ Role-Tailored Content", "✓ Instant Results"].map(f => (
-          <span key={f} style={{
-            padding:"6px 15px", borderRadius:4, fontSize:12, fontWeight:500,
-            background:t.surface, border:`1px solid ${t.border}`,
-            color:t.textMid, boxShadow:`0 1px 4px ${t.primary}07`,
-          }}>{f}</span>
+      <div className="a5" style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginTop:48 }}>
+        {["✓ ATS Optimised", "✓ Recruiter-Approved", "✓ Role-Tailored", "✓ Instant Results"].map(f => (
+          <span key={f} style={{ padding:"6px 14px", borderRadius:6, fontSize:12, fontWeight:500, background:t.surface, border:`1px solid ${t.border}`, color:t.textMid }}>{f}</span>
         ))}
       </div>
     </div>
@@ -600,6 +654,10 @@ export default function App() {
   });
 
   useEffect(() => {
+    document.title = `${BRAND} — AI CV Builder`;
+  }, []);
+
+  useEffect(() => {
     try { localStorage.setItem("resumeai-theme", mode); } catch {}
   }, [mode]);
 
@@ -609,30 +667,23 @@ export default function App() {
   return (
     <Ctx.Provider value={t}>
       <style>{fonts + buildCss(t)}</style>
-      <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", background:t.bg, width:"100%", overflowX:"hidden" }}>
+      <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", background:t.bg, width:"100%" }}>
 
-        {/* Background decoration */}
+        {/* Background glow */}
         <div style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:0, overflow:"hidden" }}>
-          <div style={{ position:"absolute", top:-300, right:-200, width:700, height:700, borderRadius:"50%", background:`radial-gradient(circle,${t.copper}07 0%,transparent 65%)` }} />
-          <div style={{ position:"absolute", bottom:-200, left:-200, width:600, height:600, borderRadius:"50%", background:`radial-gradient(circle,${t.teal}06 0%,transparent 65%)` }} />
-          <div style={{ position:"absolute", top:"45%", left:"50%", transform:"translate(-50%,-50%)", width:1000, height:600, background:`radial-gradient(ellipse,${t.gold}04 0%,transparent 60%)` }} />
+          <div style={{ position:"absolute", top:"-20%", right:"-10%", width:"55vw", height:"55vw", borderRadius:"50%", background:`radial-gradient(circle,${t.copper}06 0%,transparent 65%)` }} />
+          <div style={{ position:"absolute", bottom:"-15%", left:"-10%", width:"45vw", height:"45vw", borderRadius:"50%", background:`radial-gradient(circle,${t.teal}05 0%,transparent 65%)` }} />
+          <div style={{ position:"absolute", top:"35%", left:"50%", transform:"translate(-50%,-50%)", width:"70vw", height:"40vw", background:`radial-gradient(ellipse,${t.primary}04 0%,transparent 60%)` }} />
         </div>
 
         {/* Header */}
-        <header style={{ position:"sticky", top:0, zIndex:50, background:`${t.surface}ee`, backdropFilter:"blur(16px)", borderBottom:`1px solid ${t.border}` }}>
-          <div style={{ maxWidth:900, margin:"0 auto", padding:"0 24px", height:62, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <header style={{ position:"sticky", top:0, zIndex:50, background:`${t.surface}f0`, backdropFilter:"blur(16px)", borderBottom:`1px solid ${t.border}` }}>
+          <div style={{ maxWidth:960, margin:"0 auto", padding:"0 24px", height:60, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{
-                width:34, height:34, borderRadius:7, background:t.primary,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                color:t.primaryFg, fontFamily:"'Cormorant Garamond',serif",
-                fontSize:17, fontWeight:700, fontStyle:"italic", letterSpacing:"-.01em",
-              }}>R</div>
-              <span style={{ fontFamily:"'Cormorant Garamond',serif", fontWeight:700, fontSize:20, color:t.primary, letterSpacing:"-.02em" }}>
-                ResuméAI
-              </span>
+              <div style={{ width:32, height:32, borderRadius:8, background:t.primary, display:"flex", alignItems:"center", justifyContent:"center", color:t.primaryFg, fontFamily:"'Montserrat',sans-serif", fontSize:15, fontWeight:800 }}>S</div>
+              <span style={{ fontFamily:"'Montserrat',sans-serif", fontWeight:700, fontSize:18, color:t.primary, letterSpacing:"-.02em" }}>{BRAND}</span>
             </div>
-            <div style={{ display:"flex", gap:16, alignItems:"center" }}>
+            <div style={{ display:"flex", gap:14, alignItems:"center" }}>
               {screen === "builder" && (
                 <button onClick={reset} style={{ background:"none", border:"none", color:t.textSoft, fontSize:13, cursor:"pointer", transition:"color .15s" }}
                   onMouseEnter={e => e.currentTarget.style.color = t.primary}
@@ -654,12 +705,8 @@ export default function App() {
             </div>
           )}
           {screen === "builder" && (
-            <div style={{ maxWidth:760, width:"100%", margin:"0 auto", padding:"52px 24px 96px" }}>
-              <div style={{
-                background:t.surface, borderRadius:12, border:`1px solid ${t.border}`,
-                padding:"44px 52px",
-                boxShadow:`0 8px 48px ${t.primary}0c, 0 1px 0 rgba(255,255,255,.04) inset`,
-              }}>
+            <div style={{ maxWidth:780, width:"100%", margin:"0 auto", padding:"40px 20px 80px" }}>
+              <div className="card-inner" style={{ background:t.surface, borderRadius:14, border:`1px solid ${t.border}`, boxShadow:`0 8px 40px ${t.primary}0a` }}>
                 <StepsBar current={step} />
                 {step === 0 && <Step1 form={form} setForm={setForm} onNext={() => setStep(1)} />}
                 {step === 1 && <Step2 form={form} setForm={setForm} onNext={() => setStep(2)} onBack={() => setStep(0)} />}
@@ -671,8 +718,8 @@ export default function App() {
         </main>
 
         {screen === "hero" && (
-          <footer style={{ borderTop:`1px solid ${t.border}`, padding:"28px 24px", textAlign:"center" }}>
-            <p style={{ fontSize:12, color:t.textSoft, letterSpacing:".02em" }}>© 2026 ResuméAI · Free to use · Optional paid extras</p>
+          <footer style={{ borderTop:`1px solid ${t.border}`, padding:"24px", textAlign:"center" }}>
+            <p style={{ fontSize:12, color:t.textSoft, letterSpacing:".03em" }}>© 2026 {BRAND} · Professional CV Builder · Unlock from £4.99</p>
           </footer>
         )}
       </div>
