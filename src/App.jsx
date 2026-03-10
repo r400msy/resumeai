@@ -409,10 +409,36 @@ function StepHead({ title, subtitle }) {
   );
 }
 
+/* ── Validation Error Banner ─────────────────────────────────── */
+function ValidationError({ missing }) {
+  const t = useT();
+  if (!missing.length) return null;
+  return (
+    <div style={{ background:t.errBg, border:`1.5px solid ${t.errBorder}`, borderRadius:8, padding:"10px 14px", marginBottom:16, animation:"fadeUp .25s ease both" }}>
+      <p style={{ color:t.errText, fontSize:13, fontWeight:600, marginBottom:missing.length>1?4:0 }}>
+        Please fill in the following before continuing:
+      </p>
+      {missing.length > 1 && (
+        <ul style={{ margin:0, paddingLeft:18 }}>
+          {missing.map(m => <li key={m} style={{ color:t.errText, fontSize:12.5, lineHeight:1.7 }}>{m}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /* ── Step 1 ──────────────────────────────────────────────────── */
 function Step1({ form, setForm, onNext }) {
   const u = k => v => setForm(f => ({ ...f, [k]:v }));
-  const valid = form.name.trim() && form.title.trim() && form.email.trim() && form.phone.trim() && form.location.trim();
+  const [tried, setTried] = useState(false);
+  const missing = [
+    !form.name.trim()     && "Full Name",
+    !form.title.trim()    && "Job Title",
+    !form.email.trim()    && "Email",
+    !form.phone.trim()    && "Phone number",
+    !form.location.trim() && "Location",
+  ].filter(Boolean);
+  const handleNext = () => { setTried(true); if (!missing.length) onNext(); };
   return (
     <div className="a0">
       <StepHead title="Personal Details" subtitle="Let's start with the basics. All fields are required." />
@@ -429,8 +455,9 @@ function Step1({ form, setForm, onNext }) {
       />
       <Input label="Location" value={form.location} onChange={u("location")} placeholder="London, UK" />
       <Textarea label="Brief Summary (optional — AI will enhance it)" value={form.summary} onChange={u("summary")} placeholder="Short intro about your background..." rows={3} />
+      {tried && <ValidationError missing={missing} />}
       <div style={{ display:"flex", justifyContent:"flex-end", marginTop:8 }}>
-        <Btn onClick={onNext} disabled={!valid}>Continue →</Btn>
+        <Btn onClick={handleNext}>Continue →</Btn>
       </div>
     </div>
   );
@@ -442,7 +469,17 @@ function Step2({ form, setForm, onNext, onBack }) {
   const add = () => setForm(f => ({ ...f, experience:[...f.experience, { company:"", role:"", duration:"", description:"" }] }));
   const upd = (i, k, v) => setForm(f => { const e = [...f.experience]; e[i] = { ...e[i], [k]:v }; return { ...f, experience:e }; });
   const rem = i => setForm(f => ({ ...f, experience:f.experience.filter((_, j) => j !== i) }));
-  const valid = form.experience.every(e => e.company.trim() && e.role.trim() && e.duration.trim() && e.description.trim()) && form.education.trim();
+  const [tried, setTried] = useState(false);
+  const missing = [
+    ...form.experience.flatMap((e, i) => [
+      !e.company.trim()     && `Role ${i+1}: Company`,
+      !e.role.trim()        && `Role ${i+1}: Job Title`,
+      !e.duration.trim()    && `Role ${i+1}: Dates`,
+      !e.description.trim() && `Role ${i+1}: Description`,
+    ]).filter(Boolean),
+    !form.education.trim() && "Education",
+  ].filter(Boolean);
+  const handleNext = () => { setTried(true); if (!missing.length) onNext(); };
   return (
     <div className="a0">
       <StepHead title="Work Experience" subtitle="Add your roles — AI will write compelling bullet points." />
@@ -466,9 +503,10 @@ function Step2({ form, setForm, onNext, onBack }) {
         + Add another role
       </button>
       <Textarea label="Education (write 'None' if not applicable)" value={form.education} onChange={v => setForm(f => ({ ...f, education:v }))} placeholder="e.g. BSc Computer Science, University of Manchester, 2020 — or write None" rows={2} />
+      {tried && <ValidationError missing={missing} />}
       <div style={{ display:"flex", justifyContent:"space-between", marginTop:8 }}>
         <Btn variant="ghost" onClick={onBack}>← Back</Btn>
-        <Btn onClick={onNext} disabled={!valid}>Continue →</Btn>
+        <Btn onClick={handleNext}>Continue →</Btn>
       </div>
     </div>
   );
@@ -479,6 +517,12 @@ function Step3({ form, setForm, onNext, onBack }) {
   const t = useT();
   const u = k => v => setForm(f => ({ ...f, [k]:v }));
   const tones = ["professional","confident","creative","technical","executive"];
+  const [tried, setTried] = useState(false);
+  const missing = [
+    !form.skills.trim()    && "Your Skills",
+    !form.targetJob.trim() && "Target Job",
+  ].filter(Boolean);
+  const handleNext = () => { setTried(true); if (!missing.length) onNext(); };
   return (
     <div className="a0">
       <StepHead title="Skills & Target Role" subtitle="This is what the AI optimises for." />
@@ -492,9 +536,10 @@ function Step3({ form, setForm, onNext, onBack }) {
           ))}
         </div>
       </div>
+      {tried && <ValidationError missing={missing} />}
       <div style={{ display:"flex", justifyContent:"space-between", marginTop:8 }}>
         <Btn variant="ghost" onClick={onBack}>← Back</Btn>
-        <Btn onClick={onNext} disabled={!form.skills || !form.targetJob}>Generate Resume ✦</Btn>
+        <Btn onClick={handleNext}>Generate Resume ✦</Btn>
       </div>
     </div>
   );
