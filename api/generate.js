@@ -10,10 +10,13 @@ export default async function handler(req, res) {
     body: JSON.stringify({ model: "MiniMax-M2.5", max_tokens, messages }),
   });
   const data = await response.json();
-  // Normalise to Anthropic-style shape expected by the frontend
+  console.log("MiniMax raw response:", JSON.stringify(data));
   const text = data.choices?.[0]?.message?.content
     ?? data.reply
     ?? data.content?.[0]?.text
     ?? "";
-  res.status(200).json({ content: [{ text }], error: data.error ?? null });
+  if (!text) {
+    return res.status(200).json({ content: [{ text: "" }], error: { message: JSON.stringify(data) } });
+  }
+  res.status(200).json({ content: [{ text }], error: null });
 }
