@@ -971,9 +971,10 @@ Write a complete resume in clean plain text:
 
   const apiHeaders = () => {
     const key = (() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } })();
+    const gid = (() => { try { return localStorage.getItem("resumeai-group-id") || ""; } catch { return ""; } })();
     const model = (() => { try { return localStorage.getItem("resumeai-model") || "MiniMax-M2.5"; } catch { return "MiniMax-M2.5"; } })();
     const endpoint = (() => { try { return localStorage.getItem("resumeai-endpoint") || ""; } catch { return ""; } })();
-    return { "Content-Type":"application/json", ...(key ? { "x-api-key": key } : {}), "x-model": model, ...(endpoint ? { "x-endpoint": endpoint } : {}) };
+    return { "Content-Type":"application/json", ...(key ? { "x-api-key": key } : {}), ...(gid ? { "x-group-id": gid } : {}), "x-model": model, ...(endpoint ? { "x-endpoint": endpoint } : {}) };
   };
 
   const generate = async () => {
@@ -1208,8 +1209,18 @@ function SettingsModal({ onClose }) {
           </button>
         </div>
         <p style={{ fontSize:11.5, color:t.textSoft, marginBottom:20 }}>
-          Get your key from <span style={{ color:t.copper, fontWeight:600 }}>minimax.chat</span> → API Keys. Stored locally in your browser only.
+          Get your key and Group ID from <span style={{ color:t.copper, fontWeight:600 }}>minimax.chat</span> → API Keys. Stored locally in your browser only.
         </p>
+
+        <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>Group ID</label>
+        <input
+          type="text"
+          value={groupId}
+          onChange={e => { setGroupId(e.target.value); setStatus(null); setMsg(""); }}
+          placeholder="Enter your MiniMax Group ID"
+          className="field-input"
+          style={{ marginBottom:20 }}
+        />
 
         <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>Model</label>
         <input
