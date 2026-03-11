@@ -969,10 +969,15 @@ Write a complete resume in clean plain text:
 - ${form.tone} tone throughout`;
   };
 
+  const apiHeaders = () => {
+    const key = (() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } })();
+    return { "Content-Type":"application/json", ...(key ? { "x-api-key": key } : {}) };
+  };
+
   const generate = async () => {
     setLoading(true); setError(""); setUnlocked(false);
     try {
-      const res = await fetch(API, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"MiniMax-M2.5", max_tokens:1000, messages:[{ role:"user", content:buildPrompt() }] }) });
+      const res = await fetch(API, { method:"POST", headers:apiHeaders(), body:JSON.stringify({ model:"MiniMax-M2.5", max_tokens:2000, messages:[{ role:"user", content:buildPrompt() }] }) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const text = data.content?.map(b => b.text || "").join("") || "";
@@ -991,7 +996,7 @@ Write a complete resume in clean plain text:
       ats:      `Analyse this candidate's resume for ATS compatibility against the target role: "${form.targetJob}". Name: ${form.name}. Skills: ${form.skills}. Experience: ${form.experience.map(e => `${e.role} at ${e.company}`).join(", ")}. Provide: 1) Overall ATS Score X/100, 2) Keyword Match (present vs missing), 3) Format Score, 4) 5 specific improvements. Be direct and specific.`,
     };
     try {
-      const res = await fetch(API, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"MiniMax-M2.5", max_tokens:1000, messages:[{ role:"user", content:prompts[id] }] }) });
+      const res = await fetch(API, { method:"POST", headers:apiHeaders(), body:JSON.stringify({ model:"MiniMax-M2.5", max_tokens:2000, messages:[{ role:"user", content:prompts[id] }] }) });
       const data = await res.json();
       setUpsellContent(u => ({ ...u, [id]:data.content?.map(b => b.text || "").join("") || "" }));
     } catch { setUpsellContent(u => ({ ...u, [id]:"Error generating. Please try again." })); }
@@ -1126,6 +1131,78 @@ function Hero({ onStart }) {
   );
 }
 
+/* ── Settings Modal ─────────────────────────────────────────── */
+function SettingsModal({ onClose }) {
+  const t = useT();
+  const [key, setKey] = useState(() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } });
+  const [status, setStatus] = useState(null); // null | "testing" | "ok" | "error"
+  const [msg, setMsg] = useState("");
+  const [show, setShow] = useState(false);
+
+  const save = () => {
+    try { localStorage.setItem("resumeai-api-key", key); } catch {}
+    setMsg(""); setStatus(null);
+  };
+
+  const test = async () => {
+    if (!key.trim()) { setStatus("error"); setMsg("Please enter an API key first."); return; }
+    setStatus("testing"); setMsg("");
+    try {
+      const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": key.trim() },
+        body: JSON.stringify({ messages:[{ role:"user", content:"Say OK" }], max_tokens:10 }),
+      });
+      const data = await res.json();
+      const text = data.content?.[0]?.text || "";
+      if (data.error?.message) { setStatus("error"); setMsg(data.error.message); }
+      else if (text) { setStatus("ok"); setMsg("Connection successful!"); try { localStorage.setItem("resumeai-api-key", key); } catch {} }
+      else { setStatus("error"); setMsg("Unexpected response — check your key."); }
+    } catch(e) { setStatus("error"); setMsg(e.message); }
+  };
+
+  const statusColor = status === "ok" ? "#27795a" : status === "error" ? t.errText : t.textSoft;
+
+  return (
+    <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", alignItems:"center", justifyContent:"center" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,.45)", backdropFilter:"blur(4px)" }} />
+      <div style={{ position:"relative", background:t.surface, border:`1px solid ${t.border}`, borderRadius:14, padding:"32px 36px", width:"100%", maxWidth:480, boxShadow:`0 24px 60px rgba(0,0,0,.18)` }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
+          <h2 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:20, fontWeight:700, color:t.primary, margin:0 }}>Settings</h2>
+          <button onClick={onClose} style={{ background:"none", border:"none", fontSize:20, color:t.textSoft, cursor:"pointer", lineHeight:1 }}>✕</button>
+        </div>
+
+        <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>MiniMax API Key</label>
+        <div style={{ display:"flex", gap:8, marginBottom:8 }}>
+          <input
+            type={show ? "text" : "password"}
+            value={key}
+            onChange={e => { setKey(e.target.value); setStatus(null); setMsg(""); }}
+            placeholder="Enter your MiniMax API key"
+            className="field-input"
+            style={{ flex:1 }}
+          />
+          <button onClick={() => setShow(s => !s)} style={{ background:"none", border:`1px solid ${t.border}`, borderRadius:6, padding:"0 12px", fontSize:12, color:t.textSoft, cursor:"pointer", flexShrink:0 }}>
+            {show ? "Hide" : "Show"}
+          </button>
+        </div>
+        <p style={{ fontSize:11.5, color:t.textSoft, marginBottom:24 }}>
+          Get your key from <span style={{ color:t.copper, fontWeight:600 }}>minimax.chat</span> → API Keys. Stored locally in your browser only.
+        </p>
+
+        {msg && <p style={{ fontSize:12.5, color:statusColor, marginBottom:16, fontWeight:500 }}>{status === "ok" ? "✓ " : status === "error" ? "✕ " : ""}{msg}</p>}
+
+        <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
+          <Btn variant="ghost" onClick={onClose} small>Cancel</Btn>
+          <Btn variant="ghost" onClick={test} small disabled={status === "testing"}>{status === "testing" ? "Testing…" : "Test Connection"}</Btn>
+          <Btn small onClick={() => { save(); onClose(); }}>Save</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── App ─────────────────────────────────────────────────────── */
 const initForm = {
   name:"", title:"", email:"", dialCode:"+44", phone:"", location:"", summary:"",
@@ -1158,6 +1235,7 @@ export default function App() {
   const [step, setStep] = useState(0);
   const [maxStep, setMaxStep] = useState(0);
   const [form, setForm] = useState(initForm);
+  const [showSettings, setShowSettings] = useState(false);
   const [mode, setMode] = useState(() => {
     try { return localStorage.getItem("resumeai-theme") || "light"; } catch { return "light"; }
   });
@@ -1176,6 +1254,7 @@ export default function App() {
   return (
     <Ctx.Provider value={t}>
       <style>{fonts + buildCss(t)}</style>
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       <div style={{ minHeight:"100vh", display:"flex", flexDirection:"column", background:t.bg, width:"100%" }}>
 
         {/* Background glow */}
@@ -1213,6 +1292,13 @@ export default function App() {
                   ← Start over
                 </button>
               </>)}
+              <button onClick={() => setShowSettings(true)} title="Settings" style={{ background:"none", border:"none", color:t.textSoft, cursor:"pointer", display:"flex", alignItems:"center", padding:4 }}
+                onMouseEnter={e => e.currentTarget.style.color = t.primary}
+                onMouseLeave={e => e.currentTarget.style.color = t.textSoft}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </button>
               <ThemeToggle mode={mode} onToggle={() => setMode(m => m === "light" ? "dark" : "light")} />
               {screen === "hero" && <Btn onClick={() => setScreen("builder")} small>Get Started →</Btn>}
             </div>
