@@ -470,7 +470,7 @@ function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder=
   return (
     <div style={{ marginBottom:22 }}>
       <Label required={required}>Phone</Label>
-      <div className="phone-row" style={{ display:"flex", alignItems:"flex-end", gap:8 }}>
+      <div className="phone-row" style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
         <div style={{ flexShrink:0, minWidth:220 }}>
           <select
             value={dialCode}
@@ -483,7 +483,7 @@ function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder=
             ))}
           </select>
         </div>
-        <div style={{ flex:1, position:"relative", paddingBottom: error ? 20 : 0 }}>
+        <div style={{ flex:1 }}>
           <input
             type="tel"
             value={phone}
@@ -492,7 +492,7 @@ function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder=
             className="field-input"
             style={{ width:"100%", ...(error ? { borderBottom:`2px solid ${t.errText}` } : {}) }}
           />
-          {error && <p style={{ position:"absolute", top:"100%", left:0, fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{error}</p>}
+          {error && <p style={{ fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{error}</p>}
         </div>
       </div>
     </div>
