@@ -3,7 +3,8 @@ export default async function handler(req, res) {
   const { messages, max_tokens = 2000 } = req.body;
   const apiKey = req.headers["x-api-key"] || process.env.MINIMAX_API_KEY;
   const model = req.headers["x-model"] || process.env.MINIMAX_MODEL || "MiniMax-M2.5";
-  const endpoint = req.headers["x-endpoint"] || process.env.MINIMAX_ENDPOINT || "https://api.minimaxi.com/v1/text/chatcompletion_v2";
+  let endpoint = req.headers["x-endpoint"] || process.env.MINIMAX_ENDPOINT || "https://api.minimaxi.com/v1/chat/completions";
+  if (endpoint && !endpoint.startsWith("http")) endpoint = "https://" + endpoint;
 
   if (!apiKey) {
     return res.status(200).json({ content: [{ text: "" }], error: { message: "No API key configured. Add your key in Settings (⚙)." } });

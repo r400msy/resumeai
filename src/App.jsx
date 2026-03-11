@@ -1138,17 +1138,24 @@ function SettingsModal({ onClose }) {
   const t = useT();
   const [key, setKey] = useState(() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } });
   const [model, setModel] = useState(() => { try { return localStorage.getItem("resumeai-model") || "MiniMax-M2.5"; } catch { return "MiniMax-M2.5"; } });
-  const [endpoint, setEndpoint] = useState(() => { try { return localStorage.getItem("resumeai-endpoint") || "https://api.minimaxi.com/v1/text/chatcompletion_v2"; } catch { return "https://api.minimaxi.com/v1/text/chatcompletion_v2"; } });
+  const [endpoint, setEndpoint] = useState(() => { try { return localStorage.getItem("resumeai-endpoint") || "https://api.minimaxi.com/v1/chat/completions"; } catch { return "https://api.minimaxi.com/v1/chat/completions"; } });
   const [status, setStatus] = useState(null);
   const [msg, setMsg] = useState("");
   const [show, setShow] = useState(false);
+
+  const normaliseEndpoint = ep => {
+    const v = (ep || "").trim();
+    if (!v) return "https://api.minimaxi.com/v1/chat/completions";
+    return v.startsWith("http") ? v : "https://" + v;
+  };
 
   const save = () => {
     try {
       localStorage.setItem("resumeai-api-key", key);
       localStorage.setItem("resumeai-model", model || "MiniMax-M2.5");
-      localStorage.setItem("resumeai-endpoint", endpoint || "https://api.minimaxi.com/v1/text/chatcompletion_v2");
+      localStorage.setItem("resumeai-endpoint", normaliseEndpoint(endpoint));
     } catch {}
+    setEndpoint(normaliseEndpoint(endpoint));
     setMsg(""); setStatus(null);
   };
 
@@ -1217,7 +1224,7 @@ function SettingsModal({ onClose }) {
           type="text"
           value={endpoint}
           onChange={e => setEndpoint(e.target.value)}
-          placeholder="https://api.minimaxi.com/v1/text/chatcompletion_v2"
+          placeholder="https://api.minimaxi.com/v1/chat/completions"
           className="field-input"
           style={{ marginBottom:6 }}
         />
