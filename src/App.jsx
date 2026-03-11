@@ -390,6 +390,8 @@ textarea{resize:vertical;}
   .step-label{display:none;}
   .hero-stat{padding:0 12px;}
   .paywall-features{grid-template-columns:1fr!important;}
+  .phone-row{flex-direction:column!important;align-items:stretch!important;}
+  .phone-row .phone-select{width:100%!important;max-width:none!important;}
 }
 `;
 
@@ -468,28 +470,31 @@ function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder=
   return (
     <div style={{ marginBottom:22 }}>
       <Label>Phone</Label>
-      <div style={{ display:"flex", alignItems:"flex-end", gap:8 }}>
-        <div style={{ flexShrink:0 }}>
+      <div className="phone-row" style={{ display:"flex", alignItems:"flex-end", gap:8 }}>
+        <div style={{ flexShrink:0, minWidth:220 }}>
           <select
             value={dialCode}
             onChange={e => onDialChange(e.target.value)}
-            style={{ padding:"10px 6px", border:"none", borderBottom:`2px solid ${t.border}`, background:"transparent", fontSize:13.5, color:t.text, fontFamily:"'Poppins',sans-serif", cursor:"pointer", outline:"none", maxWidth:180 }}
+            className="phone-select"
+            style={{ padding:"10px 6px", border:"none", borderBottom:`2px solid ${t.border}`, background:"transparent", fontSize:13.5, color:t.text, fontFamily:"'Poppins',sans-serif", cursor:"pointer", outline:"none", width:"100%" }}
           >
             {COUNTRIES.map((c, i) => (
               <option key={i} value={c.dial}>{c.name} ({c.dial})</option>
             ))}
           </select>
         </div>
-        <input
-          type="tel"
-          value={phone}
-          onChange={e => onPhoneChange(e.target.value)}
-          placeholder={placeholder}
-          className="field-input"
-          style={{ flex:1, ...(error ? { borderBottom:`2px solid ${t.errText}` } : {}) }}
-        />
+        <div style={{ flex:1 }}>
+          <input
+            type="tel"
+            value={phone}
+            onChange={e => onPhoneChange(e.target.value)}
+            placeholder={placeholder}
+            className="field-input"
+            style={{ width:"100%", ...(error ? { borderBottom:`2px solid ${t.errText}` } : {}) }}
+          />
+          {error && <p style={{ fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{error}</p>}
+        </div>
       </div>
-      {error && <p style={{ fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{error}</p>}
     </div>
   );
 }
