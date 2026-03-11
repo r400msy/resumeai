@@ -971,7 +971,8 @@ Write a complete resume in clean plain text:
 
   const apiHeaders = () => {
     const key = (() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } })();
-    return { "Content-Type":"application/json", ...(key ? { "x-api-key": key } : {}) };
+    const model = (() => { try { return localStorage.getItem("resumeai-model") || "MiniMax-M2.5"; } catch { return "MiniMax-M2.5"; } })();
+    return { "Content-Type":"application/json", ...(key ? { "x-api-key": key } : {}), "x-model": model };
   };
 
   const generate = async () => {
@@ -1135,12 +1136,13 @@ function Hero({ onStart }) {
 function SettingsModal({ onClose }) {
   const t = useT();
   const [key, setKey] = useState(() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } });
-  const [status, setStatus] = useState(null); // null | "testing" | "ok" | "error"
+  const [model, setModel] = useState(() => { try { return localStorage.getItem("resumeai-model") || "MiniMax-M2.5"; } catch { return "MiniMax-M2.5"; } });
+  const [status, setStatus] = useState(null);
   const [msg, setMsg] = useState("");
   const [show, setShow] = useState(false);
 
   const save = () => {
-    try { localStorage.setItem("resumeai-api-key", key); } catch {}
+    try { localStorage.setItem("resumeai-api-key", key); localStorage.setItem("resumeai-model", model || "MiniMax-M2.5"); } catch {}
     setMsg(""); setStatus(null);
   };
 
@@ -1150,13 +1152,13 @@ function SettingsModal({ onClose }) {
     try {
       const res = await fetch(API, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": key.trim() },
+        headers: { "Content-Type": "application/json", "x-api-key": key.trim(), "x-model": model || "MiniMax-M2.5" },
         body: JSON.stringify({ messages:[{ role:"user", content:"Say OK" }], max_tokens:10 }),
       });
       const data = await res.json();
       const text = data.content?.[0]?.text || "";
       if (data.error?.message) { setStatus("error"); setMsg(data.error.message); }
-      else if (text) { setStatus("ok"); setMsg("Connection successful!"); try { localStorage.setItem("resumeai-api-key", key); } catch {} }
+      else if (text) { setStatus("ok"); setMsg("Connection successful!"); try { localStorage.setItem("resumeai-api-key", key); localStorage.setItem("resumeai-model", model || "MiniMax-M2.5"); } catch {} }
       else { setStatus("error"); setMsg("Unexpected response — check your key."); }
     } catch(e) { setStatus("error"); setMsg(e.message); }
   };
@@ -1187,9 +1189,19 @@ function SettingsModal({ onClose }) {
             {show ? "Hide" : "Show"}
           </button>
         </div>
-        <p style={{ fontSize:11.5, color:t.textSoft, marginBottom:24 }}>
+        <p style={{ fontSize:11.5, color:t.textSoft, marginBottom:20 }}>
           Get your key from <span style={{ color:t.copper, fontWeight:600 }}>minimax.chat</span> → API Keys. Stored locally in your browser only.
         </p>
+
+        <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>Model</label>
+        <input
+          type="text"
+          value={model}
+          onChange={e => setModel(e.target.value)}
+          placeholder="MiniMax-M2.5"
+          className="field-input"
+          style={{ marginBottom:24 }}
+        />
 
         {msg && <p style={{ fontSize:12.5, color:statusColor, marginBottom:16, fontWeight:500 }}>{status === "ok" ? "✓ " : status === "error" ? "✕ " : ""}{msg}</p>}
 
