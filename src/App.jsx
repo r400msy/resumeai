@@ -972,7 +972,8 @@ Write a complete resume in clean plain text:
   const apiHeaders = () => {
     const key = (() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } })();
     const model = (() => { try { return localStorage.getItem("resumeai-model") || "MiniMax-M2.5"; } catch { return "MiniMax-M2.5"; } })();
-    return { "Content-Type":"application/json", ...(key ? { "x-api-key": key } : {}), "x-model": model };
+    const endpoint = (() => { try { return localStorage.getItem("resumeai-endpoint") || ""; } catch { return ""; } })();
+    return { "Content-Type":"application/json", ...(key ? { "x-api-key": key } : {}), "x-model": model, ...(endpoint ? { "x-endpoint": endpoint } : {}) };
   };
 
   const generate = async () => {
@@ -1137,12 +1138,17 @@ function SettingsModal({ onClose }) {
   const t = useT();
   const [key, setKey] = useState(() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } });
   const [model, setModel] = useState(() => { try { return localStorage.getItem("resumeai-model") || "MiniMax-M2.5"; } catch { return "MiniMax-M2.5"; } });
+  const [endpoint, setEndpoint] = useState(() => { try { return localStorage.getItem("resumeai-endpoint") || "https://api.minimaxi.com/v1/text/chatcompletion_v2"; } catch { return "https://api.minimaxi.com/v1/text/chatcompletion_v2"; } });
   const [status, setStatus] = useState(null);
   const [msg, setMsg] = useState("");
   const [show, setShow] = useState(false);
 
   const save = () => {
-    try { localStorage.setItem("resumeai-api-key", key); localStorage.setItem("resumeai-model", model || "MiniMax-M2.5"); } catch {}
+    try {
+      localStorage.setItem("resumeai-api-key", key);
+      localStorage.setItem("resumeai-model", model || "MiniMax-M2.5");
+      localStorage.setItem("resumeai-endpoint", endpoint || "https://api.minimaxi.com/v1/text/chatcompletion_v2");
+    } catch {}
     setMsg(""); setStatus(null);
   };
 
@@ -1152,13 +1158,16 @@ function SettingsModal({ onClose }) {
     try {
       const res = await fetch(API, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": key.trim(), "x-model": model || "MiniMax-M2.5" },
+        headers: { "Content-Type": "application/json", "x-api-key": key.trim(), "x-model": model || "MiniMax-M2.5", "x-endpoint": endpoint },
         body: JSON.stringify({ messages:[{ role:"user", content:"Say OK" }], max_tokens:10 }),
       });
       const data = await res.json();
       const text = data.content?.[0]?.text || "";
       if (data.error?.message) { setStatus("error"); setMsg(data.error.message); }
-      else if (text) { setStatus("ok"); setMsg("Connection successful!"); try { localStorage.setItem("resumeai-api-key", key); localStorage.setItem("resumeai-model", model || "MiniMax-M2.5"); } catch {} }
+      else if (text) {
+        setStatus("ok"); setMsg("Connection successful!");
+        try { localStorage.setItem("resumeai-api-key", key); localStorage.setItem("resumeai-model", model || "MiniMax-M2.5"); localStorage.setItem("resumeai-endpoint", endpoint); } catch {}
+      }
       else { setStatus("error"); setMsg("Unexpected response — check your key."); }
     } catch(e) { setStatus("error"); setMsg(e.message); }
   };
@@ -1200,8 +1209,21 @@ function SettingsModal({ onClose }) {
           onChange={e => setModel(e.target.value)}
           placeholder="MiniMax-M2.5"
           className="field-input"
-          style={{ marginBottom:24 }}
+          style={{ marginBottom:20 }}
         />
+
+        <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>API Endpoint</label>
+        <input
+          type="text"
+          value={endpoint}
+          onChange={e => setEndpoint(e.target.value)}
+          placeholder="https://api.minimaxi.com/v1/text/chatcompletion_v2"
+          className="field-input"
+          style={{ marginBottom:6 }}
+        />
+        <p style={{ fontSize:11, color:t.textSoft, marginBottom:20 }}>
+          International: <span style={{ color:t.copper }}>api.minimaxi.com</span> · Domestic: <span style={{ color:t.copper }}>api.minimax.chat</span>
+        </p>
 
         {msg && <p style={{ fontSize:12.5, color:statusColor, marginBottom:16, fontWeight:500 }}>{status === "ok" ? "✓ " : status === "error" ? "✕ " : ""}{msg}</p>}
 
