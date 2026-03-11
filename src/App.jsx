@@ -1137,6 +1137,7 @@ function Hero({ onStart }) {
 function SettingsModal({ onClose }) {
   const t = useT();
   const [key, setKey] = useState(() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } });
+  const [groupId, setGroupId] = useState(() => { try { return localStorage.getItem("resumeai-group-id") || ""; } catch { return ""; } });
   const [model, setModel] = useState(() => { try { return localStorage.getItem("resumeai-model") || "MiniMax-M2.5"; } catch { return "MiniMax-M2.5"; } });
   const [endpoint, setEndpoint] = useState(() => { try { return localStorage.getItem("resumeai-endpoint") || "https://api.minimax.chat/v1/chat/completions"; } catch { return "https://api.minimax.chat/v1/chat/completions"; } });
   const [status, setStatus] = useState(null);
@@ -1152,6 +1153,7 @@ function SettingsModal({ onClose }) {
   const save = () => {
     try {
       localStorage.setItem("resumeai-api-key", key);
+      localStorage.setItem("resumeai-group-id", groupId);
       localStorage.setItem("resumeai-model", model || "MiniMax-M2.5");
       localStorage.setItem("resumeai-endpoint", normaliseEndpoint(endpoint));
     } catch {}
@@ -1165,7 +1167,7 @@ function SettingsModal({ onClose }) {
     try {
       const res = await fetch(API, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": key.trim(), "x-model": model || "MiniMax-M2.5", "x-endpoint": endpoint },
+        headers: { "Content-Type": "application/json", "x-api-key": key.trim(), "x-group-id": groupId.trim(), "x-model": model || "MiniMax-M2.5", "x-endpoint": endpoint },
         body: JSON.stringify({ messages:[{ role:"user", content:"Say OK" }], max_tokens:10 }),
       });
       const data = await res.json();
@@ -1173,7 +1175,7 @@ function SettingsModal({ onClose }) {
       if (data.error?.message) { setStatus("error"); setMsg(data.error.message); }
       else if (text) {
         setStatus("ok"); setMsg("Connection successful!");
-        try { localStorage.setItem("resumeai-api-key", key); localStorage.setItem("resumeai-model", model || "MiniMax-M2.5"); localStorage.setItem("resumeai-endpoint", endpoint); } catch {}
+        try { localStorage.setItem("resumeai-api-key", key); localStorage.setItem("resumeai-group-id", groupId); localStorage.setItem("resumeai-model", model || "MiniMax-M2.5"); localStorage.setItem("resumeai-endpoint", endpoint); } catch {}
       }
       else { setStatus("error"); setMsg("Unexpected response — check your key."); }
     } catch(e) { setStatus("error"); setMsg(e.message); }
