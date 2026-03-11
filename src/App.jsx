@@ -971,10 +971,10 @@ Write a complete resume in clean plain text:
 
   const apiHeaders = () => {
     const key = (() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } })();
+    const provider = (() => { try { return localStorage.getItem("resumeai-provider") || "anthropic"; } catch { return "anthropic"; } })();
+    const model = (() => { try { return localStorage.getItem("resumeai-model") || ""; } catch { return ""; } })();
     const gid = (() => { try { return localStorage.getItem("resumeai-group-id") || ""; } catch { return ""; } })();
-    const model = (() => { try { return localStorage.getItem("resumeai-model") || "MiniMax-M2.5"; } catch { return "MiniMax-M2.5"; } })();
-    const endpoint = (() => { try { return localStorage.getItem("resumeai-endpoint") || ""; } catch { return ""; } })();
-    return { "Content-Type":"application/json", ...(key ? { "x-api-key": key } : {}), ...(gid ? { "x-group-id": gid } : {}), "x-model": model, ...(endpoint ? { "x-endpoint": endpoint } : {}) };
+    return { "Content-Type":"application/json", ...(key ? { "x-api-key": key } : {}), "x-provider": provider, ...(model ? { "x-model": model } : {}), ...(gid ? { "x-group-id": gid } : {}) };
   };
 
   const generate = async () => {
@@ -1137,52 +1137,49 @@ function Hero({ onStart }) {
 /* ── Settings Modal ─────────────────────────────────────────── */
 function SettingsModal({ onClose }) {
   const t = useT();
+  const DEFAULTS = { anthropic: { model:"claude-sonnet-4-20250514", placeholder:"sk-ant-...", hint:"console.anthropic.com" }, minimax: { model:"MiniMax-M2.5", placeholder:"eyJhbGci...", hint:"minimax.chat" } };
+  const [provider, setProvider] = useState(() => { try { return localStorage.getItem("resumeai-provider") || "anthropic"; } catch { return "anthropic"; } });
   const [key, setKey] = useState(() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } });
   const [groupId, setGroupId] = useState(() => { try { return localStorage.getItem("resumeai-group-id") || ""; } catch { return ""; } });
-  const [model, setModel] = useState(() => { try { return localStorage.getItem("resumeai-model") || "MiniMax-M2.5"; } catch { return "MiniMax-M2.5"; } });
-  const [endpoint, setEndpoint] = useState(() => { try { return localStorage.getItem("resumeai-endpoint") || "https://api.minimax.chat/v1/chat/completions"; } catch { return "https://api.minimax.chat/v1/chat/completions"; } });
+  const [model, setModel] = useState(() => { try { return localStorage.getItem("resumeai-model") || DEFAULTS.anthropic.model; } catch { return DEFAULTS.anthropic.model; } });
   const [status, setStatus] = useState(null);
   const [msg, setMsg] = useState("");
   const [show, setShow] = useState(false);
 
-  const normaliseEndpoint = ep => {
-    const v = (ep || "").trim();
-    if (!v) return "https://api.minimax.chat/v1/chat/completions";
-    return v.startsWith("http") ? v : "https://" + v;
-  };
+  const switchProvider = p => { setProvider(p); setModel(DEFAULTS[p].model); setStatus(null); setMsg(""); };
 
   const save = () => {
     try {
+      localStorage.setItem("resumeai-provider", provider);
       localStorage.setItem("resumeai-api-key", key);
       localStorage.setItem("resumeai-group-id", groupId);
-      localStorage.setItem("resumeai-model", model || "MiniMax-M2.5");
-      localStorage.setItem("resumeai-endpoint", normaliseEndpoint(endpoint));
+      localStorage.setItem("resumeai-model", model || DEFAULTS[provider].model);
     } catch {}
-    setEndpoint(normaliseEndpoint(endpoint));
     setMsg(""); setStatus(null);
   };
 
   const test = async () => {
     if (!key.trim()) { setStatus("error"); setMsg("Please enter an API key first."); return; }
+    if (provider === "minimax" && !groupId.trim()) { setStatus("error"); setMsg("MiniMax requires a Group ID."); return; }
     setStatus("testing"); setMsg("");
     try {
+      const hdrs = { "Content-Type":"application/json", "x-api-key":key.trim(), "x-provider":provider, "x-model": model || DEFAULTS[provider].model };
+      if (provider === "minimax" && groupId.trim()) hdrs["x-group-id"] = groupId.trim();
       const res = await fetch(API, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": key.trim(), "x-group-id": groupId.trim(), "x-model": model || "MiniMax-M2.5", "x-endpoint": endpoint },
+        headers: hdrs,
         body: JSON.stringify({ messages:[{ role:"user", content:"Say OK" }], max_tokens:10 }),
       });
       const data = await res.json();
       const text = data.content?.[0]?.text || "";
       if (data.error?.message) { setStatus("error"); setMsg(data.error.message); }
-      else if (text) {
-        setStatus("ok"); setMsg("Connection successful!");
-        try { localStorage.setItem("resumeai-api-key", key); localStorage.setItem("resumeai-group-id", groupId); localStorage.setItem("resumeai-model", model || "MiniMax-M2.5"); localStorage.setItem("resumeai-endpoint", endpoint); } catch {}
-      }
+      else if (text) { setStatus("ok"); setMsg("Connection successful!"); save(); }
       else { setStatus("error"); setMsg("Unexpected response — check your key."); }
     } catch(e) { setStatus("error"); setMsg(e.message); }
   };
 
   const statusColor = status === "ok" ? "#27795a" : status === "error" ? t.errText : t.textSoft;
+  const d = DEFAULTS[provider];
 
   return (
     <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", alignItems:"center", justifyContent:"center" }}
@@ -1194,13 +1191,20 @@ function SettingsModal({ onClose }) {
           <button onClick={onClose} style={{ background:"none", border:"none", fontSize:20, color:t.textSoft, cursor:"pointer", lineHeight:1 }}>✕</button>
         </div>
 
-        <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>MiniMax API Key</label>
+        <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:10 }}>AI Provider</label>
+        <div style={{ display:"flex", gap:8, marginBottom:22 }}>
+          {["anthropic","minimax"].map(p => (
+            <button key={p} onClick={() => switchProvider(p)} style={{ flex:1, padding:"9px 0", borderRadius:8, fontSize:13, fontWeight:600, cursor:"pointer", border:`1.5px solid ${provider===p?t.primary:t.border}`, background:provider===p?t.primary:"transparent", color:provider===p?t.primaryFg:t.textMid, transition:"all .18s", textTransform:"capitalize" }}>{p === "anthropic" ? "Anthropic (Claude)" : "MiniMax"}</button>
+          ))}
+        </div>
+
+        <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>API Key</label>
         <div style={{ display:"flex", gap:8, marginBottom:8 }}>
           <input
             type={show ? "text" : "password"}
             value={key}
             onChange={e => { setKey(e.target.value); setStatus(null); setMsg(""); }}
-            placeholder="Enter your MiniMax API key"
+            placeholder={d.placeholder}
             className="field-input"
             style={{ flex:1 }}
           />
@@ -1209,41 +1213,23 @@ function SettingsModal({ onClose }) {
           </button>
         </div>
         <p style={{ fontSize:11.5, color:t.textSoft, marginBottom:20 }}>
-          Get your key and Group ID from <span style={{ color:t.copper, fontWeight:600 }}>minimax.chat</span> → API Keys. Stored locally in your browser only.
+          Get your key from <span style={{ color:t.copper, fontWeight:600 }}>{d.hint}</span>. Stored locally in your browser only.
         </p>
 
-        <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>Group ID</label>
-        <input
-          type="text"
-          value={groupId}
-          onChange={e => { setGroupId(e.target.value); setStatus(null); setMsg(""); }}
-          placeholder="Enter your MiniMax Group ID"
-          className="field-input"
-          style={{ marginBottom:20 }}
-        />
+        {provider === "minimax" && (<>
+          <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>Group ID</label>
+          <input type="text" value={groupId} onChange={e => { setGroupId(e.target.value); setStatus(null); setMsg(""); }} placeholder="Enter your MiniMax Group ID" className="field-input" style={{ marginBottom:20 }} />
+        </>)}
 
         <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>Model</label>
         <input
           type="text"
           value={model}
           onChange={e => setModel(e.target.value)}
-          placeholder="MiniMax-M2.5"
+          placeholder={d.model}
           className="field-input"
-          style={{ marginBottom:20 }}
+          style={{ marginBottom:24 }}
         />
-
-        <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>API Endpoint</label>
-        <input
-          type="text"
-          value={endpoint}
-          onChange={e => setEndpoint(e.target.value)}
-          placeholder="https://api.minimax.chat/v1/chat/completions"
-          className="field-input"
-          style={{ marginBottom:6 }}
-        />
-        <p style={{ fontSize:11, color:t.textSoft, marginBottom:20 }}>
-          International: <span style={{ color:t.copper }}>api.minimax.chat</span> · Domestic: <span style={{ color:t.copper }}>api.minimax.chat</span>
-        </p>
 
         {msg && <p style={{ fontSize:12.5, color:statusColor, marginBottom:16, fontWeight:500 }}>{status === "ok" ? "✓ " : status === "error" ? "✕ " : ""}{msg}</p>}
 
