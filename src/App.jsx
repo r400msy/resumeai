@@ -431,16 +431,16 @@ function ThemeToggle({ mode, onToggle }) {
 }
 
 /* ── Primitives ──────────────────────────────────────────────── */
-function Label({ children }) {
+function Label({ children, required }) {
   const t = useT();
-  return <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>{children}</label>;
+  return <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>{children}{required && <span style={{ color:t.errText, marginLeft:2 }}>*</span>}</label>;
 }
 
-function Input({ label, value, onChange, placeholder, type="text", hint, error }) {
+function Input({ label, value, onChange, placeholder, type="text", hint, error, required }) {
   const t = useT();
   return (
     <div style={{ marginBottom:22 }}>
-      {label && <Label>{label}</Label>}
+      {label && <Label required={required}>{label}</Label>}
       <input type={type} value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)}
         className="field-input"
         style={error ? { borderBottom:`2px solid ${t.errText}` } : undefined}
@@ -465,11 +465,11 @@ function Textarea({ label, value, onChange, placeholder, rows=4, error }) {
   );
 }
 
-function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder="7700 000000", error }) {
+function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder="7700 000000", error, required }) {
   const t = useT();
   return (
     <div style={{ marginBottom:22 }}>
-      <Label>Phone</Label>
+      <Label required={required}>Phone</Label>
       <div className="phone-row" style={{ display:"flex", alignItems:"flex-end", gap:8 }}>
         <div style={{ flexShrink:0, minWidth:220 }}>
           <select
@@ -577,12 +577,12 @@ function Step1({ form, setForm, onNext }) {
   const handleNext = () => { setTried(true); if (!hasErrors) onNext(); };
   return (
     <div className="a0">
-      <StepHead title="Personal Details" subtitle="Let's start with the basics. All fields are required except Brief Summary." />
+      <StepHead title="Personal Details" subtitle="Let's start with the basics — fields marked with * are required." />
       <div className="two-col">
-        <Input label="Full Name" value={form.name} onChange={u("name")} placeholder={p.name} error={e.name} />
-        <Input label="Job Title" value={form.title} onChange={u("title")} placeholder={p.title} error={e.title} />
+        <Input label="Full Name" value={form.name} onChange={u("name")} placeholder={p.name} error={e.name} required />
+        <Input label="Job Title" value={form.title} onChange={u("title")} placeholder={p.title} error={e.title} required />
       </div>
-      <Input label="Email" value={form.email} onChange={u("email")} placeholder={p.email} type="email" error={e.email} />
+      <Input label="Email" value={form.email} onChange={u("email")} placeholder={p.email} type="email" error={e.email} required />
       <PhoneInput
         dialCode={form.dialCode}
         onDialChange={v => setForm(f => ({ ...f, dialCode:v }))}
@@ -590,8 +590,9 @@ function Step1({ form, setForm, onNext }) {
         onPhoneChange={v => setForm(f => ({ ...f, phone:v }))}
         placeholder={p.phone}
         error={e.phone}
+        required
       />
-      <Input label="Location" value={form.location} onChange={u("location")} placeholder={locationPlaceholder} error={e.location} />
+      <Input label="Location" value={form.location} onChange={u("location")} placeholder={locationPlaceholder} error={e.location} required />
       <Textarea label="Brief Summary (optional — AI will enhance it)" value={form.summary} onChange={u("summary")} placeholder={p.summary} rows={3} />
       <div style={{ display:"flex", justifyContent:"flex-end", marginTop:8 }}>
         <Btn onClick={handleNext}>Continue →</Btn>
@@ -1135,7 +1136,15 @@ export default function App() {
         <header style={{ position:"sticky", top:0, zIndex:50, background:`${t.surface}f0`, backdropFilter:"blur(16px)", borderBottom:`1px solid ${t.border}` }}>
           <div style={{ maxWidth:960, margin:"0 auto", padding:"0 24px", height:60, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ width:32, height:32, borderRadius:8, background:t.primary, display:"flex", alignItems:"center", justifyContent:"center", color:t.primaryFg, fontFamily:"'Montserrat',sans-serif", fontSize:15, fontWeight:800 }}>S</div>
+              <div style={{ width:32, height:32, borderRadius:8, background:t.primary, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke={t.primaryFg} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <line x1="10" y1="9" x2="8" y2="9"/>
+                </svg>
+              </div>
               <span style={{ fontFamily:"'Montserrat',sans-serif", fontWeight:700, fontSize:18, color:t.primary, letterSpacing:"-.02em" }}>{BRAND}</span>
             </div>
             <div style={{ display:"flex", gap:14, alignItems:"center" }}>
