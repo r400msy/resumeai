@@ -1133,6 +1133,26 @@ const initForm = {
   noExperience:false, education:"", skills:"", targetJob:"", tone:"professional",
 };
 
+const TEST_FORM = {
+  name:"James Carter", title:"Senior Software Engineer", email:"james.carter@example.com",
+  dialCode:"+44", phone:"7911 123456", location:"London, UK",
+  summary:"Passionate software engineer with 6 years of experience building scalable web applications.",
+  experience:[{
+    company:"TechCorp Ltd", role:"Senior Software Engineer",
+    dateStart:"2021-03-01", dateEnd:"", datePresent:true,
+    description:"Led development of a microservices platform handling 2M daily requests, reducing latency by 40%.",
+  },{
+    company:"StartupXYZ", role:"Software Engineer",
+    dateStart:"2018-06-01", dateEnd:"2021-02-28", datePresent:false,
+    description:"Built React frontend and Node.js API for a SaaS product, growing to 10k users.",
+  }],
+  noExperience:false,
+  education:"BSc Computer Science, University of Manchester, 2018",
+  skills:"JavaScript, TypeScript, React, Node.js, Python, PostgreSQL, Docker, AWS",
+  targetJob:"Lead Software Engineer at a fintech startup",
+  tone:"professional",
+};
+
 export default function App() {
   const [screen, setScreen] = useState("hero");
   const [step, setStep] = useState(0);
@@ -1181,13 +1201,18 @@ export default function App() {
               <span style={{ fontFamily:"'Montserrat',sans-serif", fontWeight:700, fontSize:18, color:t.primary, letterSpacing:"-.02em" }}>{BRAND}</span>
             </div>
             <div style={{ display:"flex", gap:14, alignItems:"center" }}>
-              {screen === "builder" && (
+              {screen === "builder" && (<>
+                <button onClick={() => { setForm(TEST_FORM); setStep(0); setMaxStep(0); }} style={{ background:"none", border:`1px dashed ${t.border}`, borderRadius:6, color:t.textSoft, fontSize:12, padding:"4px 10px", cursor:"pointer", transition:"color .15s" }}
+                  onMouseEnter={e => e.currentTarget.style.color = t.copper}
+                  onMouseLeave={e => e.currentTarget.style.color = t.textSoft}>
+                  Fill Test Data
+                </button>
                 <button onClick={reset} style={{ background:"none", border:"none", color:t.textSoft, fontSize:13, cursor:"pointer", transition:"color .15s" }}
                   onMouseEnter={e => e.currentTarget.style.color = t.primary}
                   onMouseLeave={e => e.currentTarget.style.color = t.textSoft}>
                   ← Start over
                 </button>
-              )}
+              </>)}
               <ThemeToggle mode={mode} onToggle={() => setMode(m => m === "light" ? "dark" : "light")} />
               {screen === "hero" && <Btn onClick={() => setScreen("builder")} small>Get Started →</Btn>}
             </div>
