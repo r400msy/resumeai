@@ -577,7 +577,7 @@ function Step1({ form, setForm, onNext }) {
   const handleNext = () => { setTried(true); if (!hasErrors) onNext(); };
   return (
     <div className="a0">
-      <StepHead title="Personal Details" subtitle="Let's start with the basics. All fields are required." />
+      <StepHead title="Personal Details" subtitle="Let's start with the basics. All fields are required except Brief Summary." />
       <div className="two-col">
         <Input label="Full Name" value={form.name} onChange={u("name")} placeholder={p.name} error={e.name} />
         <Input label="Job Title" value={form.title} onChange={u("title")} placeholder={p.title} error={e.title} />
