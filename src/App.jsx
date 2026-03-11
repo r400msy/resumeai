@@ -402,7 +402,7 @@ const UPSELLS_DEF = [
   { id:"ats",      icon:"◎", title:"ATS Score Report", desc:"See exactly how your resume scores against ATS systems + fix tips", price:"£3.99", cta:"Get ATS Report",    ck:"gold"   },
 ];
 
-const steps = ["Your Info", "Experience", "Skills", "Resume"];
+const steps = ["Your Info", "Experience", "Skills", "Generate", "Resume"];
 
 /* ── Theme Toggle ────────────────────────────────────────────── */
 function ThemeToggle({ mode, onToggle }) {
@@ -739,7 +739,7 @@ function Step3({ form, setForm, onNext, onBack }) {
       </div>
       <div style={{ display:"flex", justifyContent:"space-between", marginTop:8 }}>
         <Btn variant="ghost" onClick={onBack}>← Back</Btn>
-        <Btn onClick={handleNext}>Generate Resume ✦</Btn>
+        <Btn onClick={handleNext}>Next →</Btn>
       </div>
     </div>
   );
@@ -895,6 +895,39 @@ function Paywall({ resume, targetJob, name, onUnlock }) {
 }
 
 /* ── Step 4 ──────────────────────────────────────────────────── */
+/* ── Step 4 — Generate ───────────────────────────────────────── */
+function StepGenerate({ form, onNext, onBack }) {
+  const t = useT();
+  return (
+    <div className="a0">
+      <StepHead title="Ready to Generate" subtitle="Review your details below, then hit generate when you're ready." />
+      <div style={{ background:t.bg, border:`1px solid ${t.border}`, borderRadius:10, padding:"20px 24px", marginBottom:28 }}>
+        {[
+          ["Name", form.name],
+          ["Job Title", form.title],
+          ["Email", form.email],
+          ["Phone", `${form.dialCode} ${form.phone}`],
+          ["Location", form.location],
+          ["Target Role", form.targetJob],
+          ["Tone", form.tone],
+          ["Skills", form.skills],
+          ["Education", form.education],
+        ].map(([label, val]) => val ? (
+          <div key={label} style={{ display:"flex", gap:12, padding:"7px 0", borderBottom:`1px solid ${t.border}` }}>
+            <span style={{ fontSize:11.5, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".08em", minWidth:100 }}>{label}</span>
+            <span style={{ fontSize:13.5, color:t.text, flex:1 }}>{val}</span>
+          </div>
+        ) : null)}
+      </div>
+      <div style={{ display:"flex", justifyContent:"space-between", marginTop:8 }}>
+        <Btn variant="ghost" onClick={onBack}>← Back</Btn>
+        <Btn onClick={onNext}>Generate Resume ✦</Btn>
+      </div>
+    </div>
+  );
+}
+
+/* ── Step 5 — Results ────────────────────────────────────────── */
 function Step4({ form, onBack, onReset }) {
   const t = useT();
   const [resume, setResume] = useState("");
@@ -939,7 +972,7 @@ Write a complete resume in clean plain text:
   const generate = async () => {
     setLoading(true); setError(""); setUnlocked(false);
     try {
-      const res = await fetch(API, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, messages:[{ role:"user", content:buildPrompt() }] }) });
+      const res = await fetch(API, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"MiniMax-M2.5", max_tokens:1000, messages:[{ role:"user", content:buildPrompt() }] }) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const text = data.content?.map(b => b.text || "").join("") || "";
@@ -958,7 +991,7 @@ Write a complete resume in clean plain text:
       ats:      `Analyse this candidate's resume for ATS compatibility against the target role: "${form.targetJob}". Name: ${form.name}. Skills: ${form.skills}. Experience: ${form.experience.map(e => `${e.role} at ${e.company}`).join(", ")}. Provide: 1) Overall ATS Score X/100, 2) Keyword Match (present vs missing), 3) Format Score, 4) 5 specific improvements. Be direct and specific.`,
     };
     try {
-      const res = await fetch(API, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, messages:[{ role:"user", content:prompts[id] }] }) });
+      const res = await fetch(API, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ model:"MiniMax-M2.5", max_tokens:1000, messages:[{ role:"user", content:prompts[id] }] }) });
       const data = await res.json();
       setUpsellContent(u => ({ ...u, [id]:data.content?.map(b => b.text || "").join("") || "" }));
     } catch { setUpsellContent(u => ({ ...u, [id]:"Error generating. Please try again." })); }
@@ -1175,7 +1208,8 @@ export default function App() {
                 {step === 0 && <Step1 form={form} setForm={setForm} onNext={() => { setStep(1); setMaxStep(m => Math.max(m, 1)); }} />}
                 {step === 1 && <Step2 form={form} setForm={setForm} onNext={() => { setStep(2); setMaxStep(m => Math.max(m, 2)); }} onBack={() => setStep(0)} />}
                 {step === 2 && <Step3 form={form} setForm={setForm} onNext={() => { setStep(3); setMaxStep(m => Math.max(m, 3)); }} onBack={() => setStep(1)} />}
-                {step === 3 && <Step4 form={form} onBack={() => setStep(2)} onReset={reset} />}
+                {step === 3 && <StepGenerate form={form} onNext={() => { setStep(4); setMaxStep(m => Math.max(m, 4)); }} onBack={() => setStep(2)} />}
+                {step === 4 && <Step4 form={form} onBack={() => setStep(3)} onReset={reset} />}
               </div>
             </div>
           )}

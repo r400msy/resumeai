@@ -1,14 +1,13 @@
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
   const { messages, max_tokens = 1000 } = req.body;
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await fetch("https://api.minimax.chat/v1/text/chatcompletion_v2", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": process.env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
+      "Authorization": `Bearer ${process.env.MINIMAX_API_KEY}`,
     },
-    body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens, messages }),
+    body: JSON.stringify({ model: "MiniMax-M2.5", max_tokens, messages }),
   });
   const data = await response.json();
   res.status(200).json(data);
