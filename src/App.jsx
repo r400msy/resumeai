@@ -434,27 +434,36 @@ function Label({ children }) {
   return <label style={{ display:"block", fontSize:10, fontWeight:600, color:t.textSoft, textTransform:"uppercase", letterSpacing:".12em", marginBottom:8 }}>{children}</label>;
 }
 
-function Input({ label, value, onChange, placeholder, type="text", hint }) {
+function Input({ label, value, onChange, placeholder, type="text", hint, error }) {
   const t = useT();
   return (
     <div style={{ marginBottom:22 }}>
       {label && <Label>{label}</Label>}
-      <input type={type} value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)} className="field-input" />
-      {hint && <p style={{ fontSize:11, color:t.textSoft, marginTop:5 }}>{hint}</p>}
+      <input type={type} value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)}
+        className="field-input"
+        style={error ? { borderBottom:`2px solid ${t.errText}` } : undefined}
+      />
+      {error ? <p style={{ fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{error}</p>
+             : hint ? <p style={{ fontSize:11, color:t.textSoft, marginTop:5 }}>{hint}</p> : null}
     </div>
   );
 }
 
-function Textarea({ label, value, onChange, placeholder, rows=4 }) {
+function Textarea({ label, value, onChange, placeholder, rows=4, error }) {
+  const t = useT();
   return (
     <div style={{ marginBottom:22 }}>
       {label && <Label>{label}</Label>}
-      <textarea value={value} placeholder={placeholder} rows={rows} onChange={e => onChange(e.target.value)} className="field-input" style={{ lineHeight:1.65 }} />
+      <textarea value={value} placeholder={placeholder} rows={rows} onChange={e => onChange(e.target.value)}
+        className="field-input"
+        style={{ lineHeight:1.65, ...(error ? { borderBottom:`2px solid ${t.errText}` } : {}) }}
+      />
+      {error && <p style={{ fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{error}</p>}
     </div>
   );
 }
 
-function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder="7700 000000" }) {
+function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder="7700 000000", error }) {
   const t = useT();
   return (
     <div style={{ marginBottom:22 }}>
@@ -477,9 +486,10 @@ function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder=
           onChange={e => onPhoneChange(e.target.value)}
           placeholder={placeholder}
           className="field-input"
-          style={{ flex:1 }}
+          style={{ flex:1, ...(error ? { borderBottom:`2px solid ${t.errText}` } : {}) }}
         />
       </div>
+      {error && <p style={{ fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{error}</p>}
     </div>
   );
 }
@@ -543,23 +553,6 @@ function StepHead({ title, subtitle }) {
   );
 }
 
-/* ── Validation Error Banner ─────────────────────────────────── */
-function ValidationError({ missing }) {
-  const t = useT();
-  if (!missing.length) return null;
-  return (
-    <div style={{ background:t.errBg, border:`1.5px solid ${t.errBorder}`, borderRadius:8, padding:"10px 14px", marginBottom:16, animation:"fadeUp .25s ease both" }}>
-      <p style={{ color:t.errText, fontSize:13, fontWeight:600, marginBottom:missing.length>1?4:0 }}>
-        Please fill in the following before continuing:
-      </p>
-      {missing.length > 1 && (
-        <ul style={{ margin:0, paddingLeft:18 }}>
-          {missing.map(m => <li key={m} style={{ color:t.errText, fontSize:12.5, lineHeight:1.7 }}>{m}</li>)}
-        </ul>
-      )}
-    </div>
-  );
-}
 
 /* ── Step 1 ──────────────────────────────────────────────────── */
 function Step1({ form, setForm, onNext }) {
@@ -567,32 +560,34 @@ function Step1({ form, setForm, onNext }) {
   const [tried, setTried] = useState(false);
   const p = useMemo(() => { const persona = rnd(PH.personas); return { name:persona.name, email:persona.email, title:rnd(PH.title), phone:rnd(PH.phone), locationFallback:rnd(PH.location), summary:rnd(PH.summary) }; }, []);
   const locationPlaceholder = DIAL_TO_LOCATION[form.dialCode] || p.locationFallback;
-  const missing = [
-    !form.name.trim()     && "Full Name",
-    !form.title.trim()    && "Job Title",
-    (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) && "Email — must be a valid email address",
-    !form.phone.trim()    && "Phone number",
-    !form.location.trim() && "Location",
-  ].filter(Boolean);
-  const handleNext = () => { setTried(true); if (!missing.length) onNext(); };
+  const emailInvalid = !form.email.trim() ? "req" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) ? "fmt" : "";
+  const hasErrors = !form.name.trim() || !form.title.trim() || emailInvalid || !form.phone.trim() || !form.location.trim();
+  const e = tried ? {
+    name:     !form.name.trim()     ? "This field is required" : "",
+    title:    !form.title.trim()    ? "This field is required" : "",
+    email:    emailInvalid === "req" ? "This field is required" : emailInvalid === "fmt" ? "Enter a valid email address" : "",
+    phone:    !form.phone.trim()    ? "This field is required" : "",
+    location: !form.location.trim() ? "This field is required" : "",
+  } : {};
+  const handleNext = () => { setTried(true); if (!hasErrors) onNext(); };
   return (
     <div className="a0">
       <StepHead title="Personal Details" subtitle="Let's start with the basics. All fields are required." />
       <div className="two-col">
-        <Input label="Full Name" value={form.name} onChange={u("name")} placeholder={p.name} />
-        <Input label="Job Title" value={form.title} onChange={u("title")} placeholder={p.title} />
+        <Input label="Full Name" value={form.name} onChange={u("name")} placeholder={p.name} error={e.name} />
+        <Input label="Job Title" value={form.title} onChange={u("title")} placeholder={p.title} error={e.title} />
       </div>
-      <Input label="Email" value={form.email} onChange={u("email")} placeholder={p.email} type="email" />
+      <Input label="Email" value={form.email} onChange={u("email")} placeholder={p.email} type="email" error={e.email} />
       <PhoneInput
         dialCode={form.dialCode}
         onDialChange={v => setForm(f => ({ ...f, dialCode:v }))}
         phone={form.phone}
         onPhoneChange={v => setForm(f => ({ ...f, phone:v }))}
         placeholder={p.phone}
+        error={e.phone}
       />
-      <Input label="Location" value={form.location} onChange={u("location")} placeholder={locationPlaceholder} />
+      <Input label="Location" value={form.location} onChange={u("location")} placeholder={locationPlaceholder} error={e.location} />
       <Textarea label="Brief Summary (optional — AI will enhance it)" value={form.summary} onChange={u("summary")} placeholder={p.summary} rows={3} />
-      {tried && <ValidationError missing={missing} />}
       <div style={{ display:"flex", justifyContent:"flex-end", marginTop:8 }}>
         <Btn onClick={handleNext}>Continue →</Btn>
       </div>
@@ -601,9 +596,10 @@ function Step1({ form, setForm, onNext }) {
 }
 
 /* ── Date Range Input ────────────────────────────────────────── */
-function DateRangeInput({ dateStart, dateEnd, datePresent, onChange }) {
+function DateRangeInput({ dateStart, dateEnd, datePresent, onChange, errorStart, errorEnd }) {
   const t = useT();
   const today = new Date().toISOString().split("T")[0];
+  const cs = t.bg==="#080e1a" ? "dark" : "light";
   return (
     <div style={{ marginBottom:22 }}>
       <Label>Dates</Label>
@@ -613,18 +609,20 @@ function DateRangeInput({ dateStart, dateEnd, datePresent, onChange }) {
           <input type="date" value={dateStart} max={today}
             onChange={e => onChange({ dateStart:e.target.value })}
             className="field-input"
-            style={{ width:"100%", colorScheme:t.bg==="#080e1a"?"dark":"light" }}
+            style={{ width:"100%", colorScheme:cs, ...(errorStart ? { borderBottom:`2px solid ${t.errText}` } : {}) }}
           />
+          {errorStart && <p style={{ fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{errorStart}</p>}
         </div>
         <div style={{ flex:1, minWidth:130, opacity:datePresent?0.4:1, transition:"opacity .2s" }}>
           <span style={{ fontSize:10, color:t.textSoft, display:"block", marginBottom:6, fontWeight:500 }}>End date</span>
           <input type="date" value={dateEnd} max={today} disabled={datePresent}
             onChange={e => onChange({ dateEnd:e.target.value })}
             className="field-input"
-            style={{ width:"100%" , colorScheme:t.bg==="#080e1a"?"dark":"light" }}
+            style={{ width:"100%", colorScheme:cs, ...(errorEnd&&!datePresent ? { borderBottom:`2px solid ${t.errText}` } : {}) }}
           />
+          {errorEnd && !datePresent && <p style={{ fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{errorEnd}</p>}
         </div>
-        <label style={{ display:"flex", alignItems:"center", gap:7, cursor:"pointer", flexShrink:0, paddingBottom:11 }}>
+        <label style={{ display:"flex", alignItems:"center", gap:7, cursor:"pointer", flexShrink:0, paddingBottom:errorStart||errorEnd?22:11 }}>
           <input type="checkbox" checked={datePresent}
             onChange={e => onChange({ datePresent:e.target.checked, ...(e.target.checked ? { dateEnd:"" } : {}) })}
             style={{ width:15, height:15, accentColor:t.copper, cursor:"pointer" }}
@@ -645,44 +643,62 @@ function Step2({ form, setForm, onNext, onBack }) {
   const p = useMemo(() => Array.from({length:8}, () => ({ company:rnd(PH.company), role:rnd(PH.role), duration:rnd(PH.duration), desc:rnd(PH.desc) })), []);
   const edu = useMemo(() => rnd(PH.education), []);
   const [tried, setTried] = useState(false);
-  const missing = [
-    ...form.experience.flatMap((e, i) => [
-      !e.company.trim()                        && `Role ${i+1}: Company`,
-      !e.role.trim()                           && `Role ${i+1}: Job Title`,
-      !e.dateStart                             && `Role ${i+1}: Start Date`,
-      !e.datePresent && !e.dateEnd             && `Role ${i+1}: End Date (or tick Present)`,
-      !e.description.trim()                    && `Role ${i+1}: Description`,
-    ]).filter(Boolean),
-    !form.education.trim() && "Education",
-  ].filter(Boolean);
-  const handleNext = () => { setTried(true); if (!missing.length) onNext(); };
+
+  const expHasErrors = !form.noExperience && form.experience.some(e =>
+    !e.company.trim() || !e.role.trim() || !e.dateStart || (!e.datePresent && !e.dateEnd) || !e.description.trim()
+  );
+  const hasErrors = expHasErrors || !form.education.trim();
+  const handleNext = () => { setTried(true); if (!hasErrors) onNext(); };
+
+  const expErrors = tried && !form.noExperience ? form.experience.map(e => ({
+    company:     !e.company.trim()                    ? "This field is required" : "",
+    role:        !e.role.trim()                       ? "This field is required" : "",
+    dateStart:   !e.dateStart                         ? "This field is required" : "",
+    dateEnd:     !e.datePresent && !e.dateEnd         ? "This field is required" : "",
+    description: !e.description.trim()               ? "This field is required" : "",
+  })) : form.experience.map(() => ({}));
+  const eduError = tried && !form.education.trim() ? "This field is required" : "";
+
   return (
     <div className="a0">
       <StepHead title="Work Experience" subtitle="Add your roles — AI will write compelling bullet points." />
-      {form.experience.map((exp, i) => (
-        <div key={i} style={{ border:`1px solid ${t.border}`, borderLeft:`3px solid ${t.copper}`, borderRadius:"0 10px 10px 0", padding:"20px 20px 4px", marginBottom:14, background:t.surface }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
-            <span style={{ fontSize:10, fontWeight:700, color:t.copper, textTransform:"uppercase", letterSpacing:".12em" }}>Role {i + 1}</span>
-            {form.experience.length > 1 && <button onClick={() => rem(i)} style={{ background:"none", border:"none", color:t.textSoft, fontSize:16, lineHeight:1 }}>✕</button>}
-          </div>
-          <div className="two-col">
-            <Input label="Company" value={exp.company} onChange={v => upd(i,"company",v)} placeholder={p[i]?.company} />
-            <Input label="Job Title" value={exp.role} onChange={v => upd(i,"role",v)} placeholder={p[i]?.role} />
-          </div>
-          <DateRangeInput
-            dateStart={exp.dateStart} dateEnd={exp.dateEnd} datePresent={exp.datePresent}
-            onChange={changes => setForm(f => { const e=[...f.experience]; e[i]={...e[i],...changes}; return {...f,experience:e}; })}
-          />
-          <Textarea label="What did you do? (rough notes fine)" value={exp.description} onChange={v => upd(i,"description",v)} placeholder={p[i]?.desc} rows={3} />
-        </div>
-      ))}
-      <button onClick={add} style={{ width:"100%", padding:11, background:"transparent", border:`1.5px dashed ${t.border}`, borderRadius:8, color:t.textSoft, fontSize:13, marginBottom:22, transition:"all .2s" }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = t.copper; e.currentTarget.style.color = t.copper; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textSoft; }}>
-        + Add another role
-      </button>
-      <Textarea label="Education (write 'None' if not applicable)" value={form.education} onChange={v => setForm(f => ({ ...f, education:v }))} placeholder={`e.g. ${edu} — or write None`} rows={2} />
-      {tried && <ValidationError missing={missing} />}
+
+      {/* No experience toggle */}
+      <label style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", marginBottom:18, padding:"11px 14px", borderRadius:9, background:form.noExperience?`${t.copper}12`:t.surface, border:`1.5px solid ${form.noExperience?t.copper:t.border}`, transition:"all .2s" }}>
+        <input type="checkbox" checked={!!form.noExperience} onChange={e => setForm(f => ({ ...f, noExperience:e.target.checked }))}
+          style={{ width:15, height:15, accentColor:t.copper, cursor:"pointer", flexShrink:0 }} />
+        <span style={{ fontSize:13, color:form.noExperience?t.copper:t.textMid, fontWeight:500 }}>I have no previous employment</span>
+      </label>
+
+      {!form.noExperience && (
+        <>
+          {form.experience.map((exp, i) => (
+            <div key={i} style={{ border:`1px solid ${t.border}`, borderLeft:`3px solid ${t.copper}`, borderRadius:"0 10px 10px 0", padding:"20px 20px 4px", marginBottom:14, background:t.surface }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+                <span style={{ fontSize:10, fontWeight:700, color:t.copper, textTransform:"uppercase", letterSpacing:".12em" }}>Role {i + 1}</span>
+                {form.experience.length > 1 && <button onClick={() => rem(i)} style={{ background:"none", border:"none", color:t.textSoft, fontSize:16, lineHeight:1 }}>✕</button>}
+              </div>
+              <div className="two-col">
+                <Input label="Company" value={exp.company} onChange={v => upd(i,"company",v)} placeholder={p[i]?.company} error={expErrors[i]?.company} />
+                <Input label="Job Title" value={exp.role} onChange={v => upd(i,"role",v)} placeholder={p[i]?.role} error={expErrors[i]?.role} />
+              </div>
+              <DateRangeInput
+                dateStart={exp.dateStart} dateEnd={exp.dateEnd} datePresent={exp.datePresent}
+                onChange={changes => setForm(f => { const e=[...f.experience]; e[i]={...e[i],...changes}; return {...f,experience:e}; })}
+                errorStart={expErrors[i]?.dateStart} errorEnd={expErrors[i]?.dateEnd}
+              />
+              <Textarea label="What did you do? (rough notes fine)" value={exp.description} onChange={v => upd(i,"description",v)} placeholder={p[i]?.desc} rows={3} error={expErrors[i]?.description} />
+            </div>
+          ))}
+          <button onClick={add} style={{ width:"100%", padding:11, background:"transparent", border:`1.5px dashed ${t.border}`, borderRadius:8, color:t.textSoft, fontSize:13, marginBottom:22, transition:"all .2s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = t.copper; e.currentTarget.style.color = t.copper; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = t.border; e.currentTarget.style.color = t.textSoft; }}>
+            + Add another role
+          </button>
+        </>
+      )}
+
+      <Textarea label="Education (write 'None' if not applicable)" value={form.education} onChange={v => setForm(f => ({ ...f, education:v }))} placeholder={`e.g. ${edu} — or write None`} rows={2} error={eduError} />
       <div style={{ display:"flex", justifyContent:"space-between", marginTop:8 }}>
         <Btn variant="ghost" onClick={onBack}>← Back</Btn>
         <Btn onClick={handleNext}>Continue →</Btn>
@@ -698,16 +714,15 @@ function Step3({ form, setForm, onNext, onBack }) {
   const tones = ["professional","confident","creative","technical","executive"];
   const p = useMemo(() => ({ skills:rnd(PH.skills), targetJob:rnd(PH.targetJob) }), []);
   const [tried, setTried] = useState(false);
-  const missing = [
-    !form.skills.trim()    && "Your Skills",
-    !form.targetJob.trim() && "Target Job",
-  ].filter(Boolean);
-  const handleNext = () => { setTried(true); if (!missing.length) onNext(); };
+  const hasErrors = !form.skills.trim() || !form.targetJob.trim();
+  const handleNext = () => { setTried(true); if (!hasErrors) onNext(); };
+  const skillsError   = tried && !form.skills.trim()    ? "This field is required" : "";
+  const targetJobError = tried && !form.targetJob.trim() ? "This field is required" : "";
   return (
     <div className="a0">
       <StepHead title="Skills & Target Role" subtitle="This is what the AI optimises for." />
-      <Textarea label="Your Skills" value={form.skills} onChange={u("skills")} placeholder={p.skills} rows={3} />
-      <Input label="Target Job" value={form.targetJob} onChange={u("targetJob")} placeholder={p.targetJob} hint="Be specific — the more detail, the better the AI tailors your resume." />
+      <Textarea label="Your Skills" value={form.skills} onChange={u("skills")} placeholder={p.skills} rows={3} error={skillsError} />
+      <Input label="Target Job" value={form.targetJob} onChange={u("targetJob")} placeholder={p.targetJob} hint="Be specific — the more detail, the better the AI tailors your resume." error={targetJobError} />
       <div style={{ marginBottom:22 }}>
         <Label>Tone</Label>
         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
@@ -716,7 +731,6 @@ function Step3({ form, setForm, onNext, onBack }) {
           ))}
         </div>
       </div>
-      {tried && <ValidationError missing={missing} />}
       <div style={{ display:"flex", justifyContent:"space-between", marginTop:8 }}>
         <Btn variant="ghost" onClick={onBack}>← Back</Btn>
         <Btn onClick={handleNext}>Generate Resume ✦</Btn>
@@ -1077,7 +1091,7 @@ function Hero({ onStart }) {
 const initForm = {
   name:"", title:"", email:"", dialCode:"+44", phone:"", location:"", summary:"",
   experience:[{ company:"", role:"", dateStart:"", dateEnd:"", datePresent:false, description:"" }],
-  education:"", skills:"", targetJob:"", tone:"professional",
+  noExperience:false, education:"", skills:"", targetJob:"", tone:"professional",
 };
 
 export default function App() {
