@@ -1270,7 +1270,12 @@ const TEST_FORM = {
   tone:"professional",
 };
 
+const ACCESS_CODE = "21wxafmaw15321wdfssdf32";
+
 export default function App() {
+  const [authed, setAuthed] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
+  const [codeError, setCodeError] = useState(false);
   const [screen, setScreen] = useState("hero");
   const [step, setStep] = useState(0);
   const [maxStep, setMaxStep] = useState(0);
@@ -1290,6 +1295,47 @@ export default function App() {
 
   const t = themes[mode];
   const reset = () => { setStep(0); setMaxStep(0); setForm(initForm); setScreen("hero"); };
+
+  const handleCode = () => {
+    if (codeInput.trim() === ACCESS_CODE) {
+      setAuthed(true);
+      setCodeError(false);
+    } else {
+      setCodeError(true);
+    }
+  };
+
+  if (!authed) {
+    return (
+      <Ctx.Provider value={t}>
+        <style>{fonts + buildCss(t)}</style>
+        <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:t.bg, fontFamily:"'Poppins',sans-serif" }}>
+          <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:14, padding:"40px 36px", width:"100%", maxWidth:400, textAlign:"center", boxShadow:`0 8px 40px ${t.primary}0a` }}>
+            <div style={{ width:48, height:48, borderRadius:12, background:t.primary, display:"inline-flex", alignItems:"center", justifyContent:"center", marginBottom:20 }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={t.primaryFg} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <h2 style={{ fontFamily:"'Montserrat',sans-serif", fontSize:22, fontWeight:700, color:t.primary, marginBottom:6 }}>{BRAND}</h2>
+            <p style={{ fontSize:13, color:t.textSoft, marginBottom:24 }}>Enter your access code to continue</p>
+            <input
+              type="password"
+              value={codeInput}
+              onChange={e => { setCodeInput(e.target.value); setCodeError(false); }}
+              onKeyDown={e => e.key === "Enter" && handleCode()}
+              placeholder="Access code"
+              className="field-input"
+              style={{ textAlign:"center", marginBottom:8, ...(codeError ? { borderBottomColor:t.errText } : {}) }}
+            />
+            {codeError && <p style={{ fontSize:12, color:t.errText, fontWeight:500, marginBottom:12 }}>Invalid access code</p>}
+            <div style={{ marginTop:16 }}>
+              <Btn onClick={handleCode}>Enter</Btn>
+            </div>
+          </div>
+        </div>
+      </Ctx.Provider>
+    );
+  }
 
   return (
     <Ctx.Provider value={t}>
