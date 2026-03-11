@@ -483,7 +483,7 @@ function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder=
             ))}
           </select>
         </div>
-        <div style={{ flex:1 }}>
+        <div style={{ flex:1, position:"relative", paddingBottom: error ? 20 : 0 }}>
           <input
             type="tel"
             value={phone}
@@ -492,7 +492,7 @@ function PhoneInput({ dialCode, onDialChange, phone, onPhoneChange, placeholder=
             className="field-input"
             style={{ width:"100%", ...(error ? { borderBottom:`2px solid ${t.errText}` } : {}) }}
           />
-          {error && <p style={{ fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{error}</p>}
+          {error && <p style={{ position:"absolute", top:"100%", left:0, fontSize:11.5, color:t.errText, marginTop:4, fontWeight:500 }}>{error}</p>}
         </div>
       </div>
     </div>
