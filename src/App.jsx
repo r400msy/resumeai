@@ -1138,14 +1138,14 @@ function SettingsModal({ onClose }) {
   const t = useT();
   const [key, setKey] = useState(() => { try { return localStorage.getItem("resumeai-api-key") || ""; } catch { return ""; } });
   const [model, setModel] = useState(() => { try { return localStorage.getItem("resumeai-model") || "MiniMax-M2.5"; } catch { return "MiniMax-M2.5"; } });
-  const [endpoint, setEndpoint] = useState(() => { try { return localStorage.getItem("resumeai-endpoint") || "https://api.minimaxi.com/v1/chat/completions"; } catch { return "https://api.minimaxi.com/v1/chat/completions"; } });
+  const [endpoint, setEndpoint] = useState(() => { try { return localStorage.getItem("resumeai-endpoint") || "https://api.minimax.chat/v1/chat/completions"; } catch { return "https://api.minimax.chat/v1/chat/completions"; } });
   const [status, setStatus] = useState(null);
   const [msg, setMsg] = useState("");
   const [show, setShow] = useState(false);
 
   const normaliseEndpoint = ep => {
     const v = (ep || "").trim();
-    if (!v) return "https://api.minimaxi.com/v1/chat/completions";
+    if (!v) return "https://api.minimax.chat/v1/chat/completions";
     return v.startsWith("http") ? v : "https://" + v;
   };
 
@@ -1224,12 +1224,12 @@ function SettingsModal({ onClose }) {
           type="text"
           value={endpoint}
           onChange={e => setEndpoint(e.target.value)}
-          placeholder="https://api.minimaxi.com/v1/chat/completions"
+          placeholder="https://api.minimax.chat/v1/chat/completions"
           className="field-input"
           style={{ marginBottom:6 }}
         />
         <p style={{ fontSize:11, color:t.textSoft, marginBottom:20 }}>
-          International: <span style={{ color:t.copper }}>api.minimaxi.com</span> · Domestic: <span style={{ color:t.copper }}>api.minimax.chat</span>
+          International: <span style={{ color:t.copper }}>api.minimax.chat</span> · Domestic: <span style={{ color:t.copper }}>api.minimax.chat</span>
         </p>
 
         {msg && <p style={{ fontSize:12.5, color:statusColor, marginBottom:16, fontWeight:500 }}>{status === "ok" ? "✓ " : status === "error" ? "✕ " : ""}{msg}</p>}
